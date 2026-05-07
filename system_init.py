@@ -137,6 +137,7 @@ class system_init:
             if c != c_max: # neighbor above + right and below + right 
                 ul_dict.update({str(i) + str(i+c) : [i, i+c]})
                 ul_dict.update({str(i) + str(i+c+1) : [i, i+c+1]})
+
         return ul_dict 
 
     def J_init(self, link_dict):
