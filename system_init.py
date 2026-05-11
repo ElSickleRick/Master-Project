@@ -147,7 +147,7 @@ class system_init:
 
         '''
 
-        J = np.random.rand(int(3*self.T*(self.T+1)/2))
+        J = 2*np.random.rand(int(3*self.T*(self.T+1)/2))
         i = 0
         
         for x in link_dict:
@@ -175,7 +175,7 @@ class system_init:
                 -> chis are appended to the last postion of each value 
         '''
         
-        chi = np.random.rand(int(3*self.T*(self.T+1)/2)) + 1j*np.random.rand(int(3*self.T*(self.T+1)/2))
+        chi = 10*np.random.rand(int(3*self.T*(self.T+1)/2)) + 1j*np.random.rand(int(3*self.T*(self.T+1)/2))
         i = 0
         
         for x in link_dict:
@@ -197,9 +197,10 @@ class system_init:
         mu_arr = array of random values in [0,1)
                 -> length (T+1)(T+2)/2
         '''
+        # mu_arr = np.random.rand(int((self.T+1)*(self.T+2)/2)) #random initialization
+        mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2))
 
-        return np.random.rand(int((self.T+1)*(self.T+2)/2))
-
+        return mu_arr 
 
     def Ham_builder(self, pop_link_dict, mu_arr):
 
