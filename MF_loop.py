@@ -5,7 +5,7 @@ from multiprocessing import pool
 class MF_loop:
 
 
-    def __init__(self, beta, eival, eivec,  N_dif_bd, mu_step, pop_link_dict, Chi_abs_dif_bd, Chi_ph_dif_bd):
+    def __init__(self, beta, eival, eivec,  N_dif_bd, mu_step, pop_link_dict, Chi_dif_bd):
 	# mu step probably has to be adjusetd!
         	
         self.pop_link_dict = pop_link_dict
@@ -14,8 +14,7 @@ class MF_loop:
         self.eivec = eivec 
         self.N_dif_bd = N_dif_bd
         self.mu_step = mu_step
-        self.Chi_abs_dif_bd = Chi_abs_dif_bd
-        self.Chi_ph_dif_bd = Chi_ph_dif_bd
+        self.Chi_dif_bd = Chi_dif_bd
         return
 
 
@@ -59,12 +58,8 @@ class MF_loop:
                 expectation values of particle numbers on every site, ordered in the usual way
         '''
 
-        N_arr =  (2/Z)*np.matmul(np.absolute(self.eivec)**2, np.conjugate(weights))
-
-        print("N array is" , N_arr)
-        print(" sum over N array is", np.sum(N_arr))
-
-        mu_arr += self.mu_step*np.random.rand()*(N_arr - 1) # Ill probably have to adjust the factor 0.1 later to fit the local energy scale       
+        N_arr = 2*(np.absolute(self.eivec)**2 @ (weights/(1+weights))) # I am verry happy that this works but I should check it again
+        mu_arr += self.mu_step*np.random.rand()*(N_arr - 1) # Ill probably have to adjust the factor 0.1 later to fit the local energy scale    
 
         if all(np.absolute(N_arr - 1) < self.N_dif_bd) == True:
             return True, mu_arr
@@ -98,9 +93,10 @@ class MF_loop:
         
         '''
         s, e, J, Chi_old = self.pop_link_dict[link]
-        Chi_new=  (weights @ (self.eivec[s-1][:]*np.conjugate(self.eivec[e-1][:]))) * (2/Z)
+        Chi_new= 2*((weights/(weights +1)) @ (self.eivec[s-1][:]*np.conjugate(self.eivec[e-1][:])))
 	
-        if np.absolute(np.absolute(Chi_old) -np.absolute(Chi_new))  < self.Chi_abs_dif_bd and np.absolute(np.angle(Chi_old) - np.angle(Chi_new)) < self.Chi_ph_dif_bd:
+        if np.absolute(np.imag(Chi_old - Chi_new))  < self.Chi_dif_bd and np.absolute(np.real(Chi_old - Chi_new)) < self.Chi_dif_bd:
+
              return True
 
         else:

@@ -147,7 +147,8 @@ class system_init:
 
         '''
 
-        J = 2*np.random.rand(int(3*self.T*(self.T+1)/2))
+        #J = 1*np.random.rand(int(3*self.T*(self.T+1)/2))
+        J = np.ones(int(3*self.T*(self.T+1)/2))
         i = 0
         
         for x in link_dict:
