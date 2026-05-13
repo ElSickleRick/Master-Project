@@ -19,55 +19,14 @@ class system_init:
 
         self.T = T
         self.kappa = kappa
+        return
 
-
-    def NN_dict_gen(self): 
-    
-        '''
-        Parameters
-        ----------
-
-        Returns
-        -------
-        NN_dict : dictionarie of NN of all sites 
-        -> keys are site numbers
-        -> values are lists of NN sites
-        -> counting starts at 1 and goes to (T+1)*(T+2)/2
-        '''
-        
-        s = int((self.T+1)*(self.T+2)/2) # number of sites
-        c_max = self.T + 1 # maximum column number (see below)
-        
-        NN_dict = {1 : [2,3]}
-        
-        for i in range(2, s+1): 
-            
-            NN = [] # save NN for site i here
-            
-            c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # caclulate column number c of site i
-            p = int(i - (c-1)*c/2) # calcualte position p of site i inside coloumn 
-            
-            if p != 1: # neighbor below and below + left 
-                NN.extend([int(i-1), int(i-c)])
-            
-            if i != c*(c+1)/2: # neighbor above and above + left 
-                NN.extend([int(i+1), int(i-c+1)])
-                
-            if c != c_max: # neighbor above + right and below + right 
-                NN.extend([int(i+c), int(i+c+1)])
-            
-            NN_dict.update({i : NN})
-        
-        return NN_dict
 
     def uNN_dict_gen(self):
 
         '''
         Only allows unique nearest neighbors (uNN), such that there is no redundancy.
         -> uNN are always above, above + right and below + right sites if existent
-
-        Parameters
-        ----------
 
         Returns
         -------
@@ -108,9 +67,6 @@ class system_init:
         '''
         gives empty dictionary of all links in a triangle lattice of given size 
         (see below)
-
-        Parameters
-        ----------
 
         Returns
         -------
@@ -176,7 +132,7 @@ class system_init:
                 -> chis are appended to the last postion of each value 
         '''
         
-        chi = 10*np.random.rand(int(3*self.T*(self.T+1)/2)) + 1j*np.random.rand(int(3*self.T*(self.T+1)/2))
+        chi = 1*np.random.rand(int(3*self.T*(self.T+1)/2)) + 1j*np.random.rand(int(3*self.T*(self.T+1)/2))
         i = 0
         
         for x in link_dict:
@@ -189,9 +145,6 @@ class system_init:
 
         '''
         creates random vlaues for mu (Placeholder-ish)
-
-        Parameters
-        ----------
 
         Returns
         ------
@@ -227,17 +180,8 @@ class system_init:
         np.fill_diagonal(Ham, mu_arr)
 
         for x in pop_link_dict: 
-            a, b, c, d = pop_link_dict[x] # link a -> b (<=> a<b)
-
-            if c.dtype == np.complex128: # figure out wich value is J and which is chi. Maybe this can be simplified later 
-                J = c
-                chi =d
-            else:
-                J = d   
-                chi = c
-
-
-            Ham[a-1, b-1] = temp = (-J*(1+self.kappa/2)+J*self.kappa*np.absolute(chi))*np.conjugate(chi)/2 # only fills uper triangle
+            a, b, J, chi = pop_link_dict[x] # link a -> b (<=> a<b)
+            Ham[a-1, b-1] = temp = (-J*(1+self.kappa/2)+J*self.kappa*(np.absolute(chi))**2)*np.conjugate(chi)/2 # only fills uper triangle
 
         return Ham
 

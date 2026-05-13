@@ -9,14 +9,16 @@ from MF_loop import MF_loop
 from analysis import analysis
 
 
-T  = 7 # # triangles in base
-kappa = 10 # biquadratic exchange constant
-beta = 10 # inverse temperatur
+# look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
+
+T  = 30 # # triangles in base
+kappa = 4 # biquadratic exchange constant
+beta = 15 # inverse temperatur
 
 N_diff_bd = 0.01 # maximum tolerance for deviation of local particle number from 1 => 0.001?
-mu_step = 0.75 # stepsize for chemical potential in [0,1)  ??? I am not ssure why I put this in ???
+mu_step = 0.75 # stepsize for chemical potential in [0,1)  ??? I am not sure why I put this in ???
 Chi_dif_bd = 0.01 # bound for convergence of absolute value of Chi (MF-parameter)
-sc_iter_max = 150 # maximum number of iterations before the self-consistency loop will self-terminate
+sc_iter_max = 250 # maximum number of iterations before the self-consistency loop will terminat prematurely 
 
 
 init = system_init(T, kappa)
@@ -36,51 +38,53 @@ while conv == False:
     conv = True
    
     Ham = init.Ham_builder(pop_link_dict, mu_arr)
-    eival, eivec = la.eigh(Ham, lower = False) # daigonalize Hamiltonian 
+    eival, eivec = la.eigh(Ham, lower = False) # daigonalize Hamiltonian, entries are in upper traingle! 
 
     MF = MF_loop(beta, eival, eivec, N_diff_bd, mu_step, pop_link_dict, Chi_dif_bd)
 
-    weights, Z = MF.thermal_calc() # calculate Boltzman-weights and partition fucntion
+    fe_di = np.array([MF.lin_fe_di(beta*x) for x in eival]) # calculate Boltzman-weights and partition fucntion
 
-    # print("weights are:", weights) 
-    
-    temp, mu_arr = MF.mu_update(mu_arr, Z, weights) # update chemical potentials
+    temp, mu_arr = MF.mu_update(mu_arr, fe_di) # update chemical potentials
 
     if temp == False:
         conv = False 
 
     for x in pop_link_dict: # update MF-parameters (parallelizable!) 
-        temp = MF.Chi_update(x, weights, Z)
-
-        if x == "58":
-            print(" Chi on link 58 is", np.absolute(pop_link_dict["58"][3]), "(absolute value)", np.angle(pop_link_dict["58"][3])/np.pi, "(phase)")    
-        if x == "89":
-            print(" Chi on link 89 is", np.absolute(pop_link_dict["89"][3]), "(absolute value)", np.angle(pop_link_dict["89"][3])/np.pi, "(phase)")  
-        if x == "59":
-            print(" Chi on link 59 is", np.absolute(pop_link_dict["59"][3]), "(absolute value)", np.angle(pop_link_dict["59"][3])/np.pi, "(phase)") 
-
+        temp = MF.Chi_update(x, fe_di)
+    
+    
+        # if x == "58":
+            # print(" Chi on link 58 is", np.absolute(pop_link_dict["58"][3]), "(absolute value)", np.angle(pop_link_dict["58"][3])/np.pi, "(phase)")           # if x == "89":
+            # print(" Chi on link 89 is", np.absolute(pop_link_dict["89"][3]), "(absolute value)", np.angle(pop_link_dict["89"][3])/np.pi, "(phase)")  
+        # if x == "59":
+            # print(" Chi on link 59 is", np.absolute(pop_link_dict["59"][3]), "(absolute value)", np.angle(pop_link_dict["59"][3])/np.pi, "(phase)") 
+    
 
         if temp == False:
             conv = False 
 
     sc_iter += 1
+
     if sc_iter >= sc_iter_max:
-        print("self consistency loop intrrupted: to many iterations")
+        print("self consistency loop intrrupted: to many iterations (",sc_iter_max,")")
         interrupt = True 
         conv = True 
+        break
 
-    print("iteration", sc_iter, "finished, verdict:", conv)
-    # print("N array is" , N_arr)
-    # print(pop_link_dict)
+    if (sc_iter-1) % 50 == 0 and sc_iter != 1:
+        print("finished iteration", sc_iter-1)
+        
 
 if interrupt == False:
-    print("self-consistency loop finished normally")
-    print("number of iterations:", sc_iter)
+    print("self-consistency loop finished normally after", sc_iter, "iterations")
 
-    ana = analysis(pop_link_dict)
 
-    mean, std, Chi_abs_arr = ana.Chi_abs_dist_plot()
+ana = analysis(T, kappa, beta, pop_link_dict, eival, eivec, mu_arr)
 
-    print("mean is", mean, "with standard deviation", std)
+mean, std, Chi_abs_arr = ana.Chi_abs_dist_plot()
 
-    plt.show()
+print("mean is", mean, "with standard deviation", std)
+
+F = ana.free_en_calc()
+
+plt.show()

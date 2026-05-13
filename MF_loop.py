@@ -18,26 +18,23 @@ class MF_loop:
         return
 
 
-    def thermal_calc(self):
-        '''
-        Calculates the Boltzman weights as well as the partition function
+    def lin_fe_di(self, Ebeta):
 
-        Parameters:
-        ----------
-        Returns:
-        -------
-        weights: array of floats
-                thermal (Boltzman) weights ordered accorading the energies (ascending)
-        Z: float
-                partition function
         '''
-        weights = np.exp(-self.beta*self.eival)
-      
+        linearization of fermi dirac distribution 
+        '''
 
-        return weights, np.sum(weights)
+        if Ebeta < -2:
+            return 1
+         
+        elif Ebeta > 2:
+            return 0
+
+        else:
+            return (1/4)*(2-Ebeta)
     
 
-    def mu_update(self, mu_arr, Z, weights):
+    def mu_update(self, mu_arr, fe_di):
 
         '''
         Calculates the expectation value of N on all sites 
@@ -49,8 +46,8 @@ class MF_loop:
         Z: float
                 partition function
 
-        weights: array of floats 
-                thermal (Boltzman) weights ordered accoarding to the energies (ascending)
+        fe_di: array of floats 
+                values of fermi-dirac distribiution for each eigenenergies (ascending order)
 
         Returns:
         ------- 
@@ -58,8 +55,9 @@ class MF_loop:
                 expectation values of particle numbers on every site, ordered in the usual way
         '''
 
-        N_arr = 2*(np.absolute(self.eivec)**2 @ (weights/(1+weights))) # I am verry happy that this works but I should check it again
+        N_arr = 2*(np.absolute(self.eivec)**2 @ fe_di) # I am verry happy that this works but I should check it again
         mu_arr += self.mu_step*np.random.rand()*(N_arr - 1) # Ill probably have to adjust the factor 0.1 later to fit the local energy scale    
+        
 
         if all(np.absolute(N_arr - 1) < self.N_dif_bd) == True:
             return True, mu_arr
@@ -68,7 +66,7 @@ class MF_loop:
             return False, mu_arr
     
 
-    def Chi_update(self, link, weights, Z):  # keep in mind: numpy is row first
+    def Chi_update(self, link, fe_di):  # keep in mind: numpy is row first
         
         '''
         Calculates the expectation value of Chi on the link s s -> e.
@@ -81,28 +79,26 @@ class MF_loop:
         e: int 
                 site where the bond ends (s<e)
                 counting convention: start with 1
-        weights: array of floats
-                thermal (Boltzman) weights ordered according to the energies (ascending)
-
+        fedi: array of floats
+                values of fermi-dirac distribiution for each eigenenergie (ascending order)
 
         Returns:
         -------
-        Chi_new: np.complex128
-                calculated Chi on the s -> e bond
+        conv_check: boolean
+                True if updated calc is sufficiently close to old Chi, False otherwise
                 
         
         '''
         s, e, J, Chi_old = self.pop_link_dict[link]
-        Chi_new= 2*((weights/(weights +1)) @ (self.eivec[s-1][:]*np.conjugate(self.eivec[e-1][:])))
-	
+        alpha = 0.4*np.random.rand()
+        
+        Chi_new= 2*(fe_di @ (self.eivec[s-1][:]*np.conjugate(self.eivec[e-1][:])))
+        self.pop_link_dict[str(s)+str(e)][3] = (1-alpha)*Chi_old + alpha*Chi_new	
+        
         if np.absolute(np.imag(Chi_old - Chi_new))  < self.Chi_dif_bd and np.absolute(np.real(Chi_old - Chi_new)) < self.Chi_dif_bd:
-
              return True
 
         else:
-
-            alpha = 0.3*np.random.rand()
-            self.pop_link_dict[str(s)+str(e)][3] = (1-alpha)*Chi_old + alpha*Chi_new
             return False 
 			
 
