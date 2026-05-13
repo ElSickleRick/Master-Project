@@ -133,6 +133,9 @@ class system_init:
         '''
         
         chi = 1*np.random.rand(int(3*self.T*(self.T+1)/2)) + 1j*np.random.rand(int(3*self.T*(self.T+1)/2))
+        # chi = 1j*np.random.rand(int(3*self.T*(self.T+1)/2)) # imaginary initialization
+        # chi = 1*np.random.radn(int(3*self.T*(self.T+1)/2)) # real initialization
+        
         i = 0
         
         for x in link_dict:
