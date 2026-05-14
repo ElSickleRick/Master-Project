@@ -11,13 +11,13 @@ from analysis import analysis
 
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
-T  = 3 # # triangles in base
-kappa = 20 # biquadratic exchange constant
-beta = 100 # inverse temperatur
+T  = 21 # # triangles in base
+kappa = 10 # biquadratic exchange constant
+beta = 50 # inverse temperatur
 
-N_diff_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 => 0.001?
-mu_step = 0.75 # stepsize for chemical potential in [0,1)  ??? I am not sure why I put this in ???
-Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-parameter)i
+N_dif_bd = 0.001 # maximum tolerance for deviation of local particle number from 1 => 0.001?
+mu_step = 0.5 # stepsize for chemical potential in [0,1)  ??? I am not sure why I put this in ???
+Chi_dif_bd = 0.001 # bound for convergence of absolute value of Chi (MF-parameter)i
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
 sc_iter_max = 1000 # maximum number of iterations before the self-consistency loop will terminat prematurely (requires max_iter_cond == True)
 
@@ -41,11 +41,11 @@ while conv == False:
     Ham = init.Ham_builder(pop_link_dict, mu_arr)
     eival, eivec = la.eigh(Ham, lower = False) # daigonalize Hamiltonian, entries are in upper traingle! 
 
-    MF = MF_loop(beta, eival, eivec, N_diff_bd, mu_step, pop_link_dict, Chi_dif_bd)
+    MF = MF_loop(beta, eival, eivec, N_dif_bd, mu_step, pop_link_dict, Chi_dif_bd, conv)
 
     fe_di = np.array([MF.lin_fe_di(beta*x) for x in eival]) # calculate fermi_dirac distributions
 
-    mu_arr = MF.update(mu_arr, fe_di) # fermi_dirac distributions
+    mu_arr, conv  = MF.update(mu_arr, fe_di) # fermi_dirac distributions
 
     sc_iter += 1
 
@@ -67,10 +67,11 @@ ana = analysis(T, kappa, beta, pop_link_dict, eival, eivec, mu_arr)
 
 mean, std, Chi_abs_arr = ana.Chi_abs_dist_plot()
 
-print(pop_link_dict)
 
 print("mean is", mean, "with standard deviation", std)
 
 F = ana.free_en_calc()
+
+print(pop_link_dict)
 
 plt.show()
