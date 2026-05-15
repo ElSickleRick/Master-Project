@@ -5,17 +5,21 @@ from multiprocessing import pool
 class MF_loop:
 
 
-    def __init__(self, beta, eival, eivec,  N_dif_bd, mu_step, pop_link_dict, Chi_dif_bd, conv):
+    def __init__(self, beta, eival, eivec,  N_dif_bd, mu_step, pop_link_dict, Chi_dif_bd, rm_scale, conv, hist_dict):
 	# mu step probably has to be adjusetd!
         	
-        self.pop_link_dict = pop_link_dict
+
         self.beta = beta 
         self.eival = eival
         self.eivec = eivec 
         self.N_dif_bd = N_dif_bd
         self.mu_step = mu_step
+        self.pop_link_dict = pop_link_dict
         self.Chi_dif_bd = Chi_dif_bd
+        self.rm_scale = rm_scale
         self.conv = conv
+        self.hist_dict = hist_dict
+
         return
 
 
@@ -34,18 +38,16 @@ class MF_loop:
         else:
             return (1/4)*(2-Ebeta)
     
-    def update(self, mu_arr, fe_di):
+    def update(self, mu_arr, fe_di, mu_hist):
        
         conv = True 
 
         new = 2*(fe_di*np.conjugate(self.eivec)) @ np.transpose(self.eivec)
 
-        # print(np.diag(new))
-
-
-        N_arr = np.diag(new).astype(float) 
+        N_arr = np.diag(new).astype(float)
         mu_arr += self.mu_step*np.random.rand()*(N_arr - 1) # Ill probably have to adjust the factor 0.1 later to fit the local energy scale
-        # print("mu array:", mu_arr)
+        
+        mu_hist = np.append(mu_hist, [mu_arr], axis = 0) 
 
         if all(np.absolute(N_arr - 1) < self.N_dif_bd) != True:
             conv = False
@@ -53,16 +55,19 @@ class MF_loop:
         for x in self.pop_link_dict:
 
             s, e, J, Chi_old = self.pop_link_dict[x]
-            alpha = 0.4*np.random.rand()
+            alpha = self.rm_scale*np.random.rand()
        
             Chi_new= new[s-1][e-1]
-            self.pop_link_dict[str(s)+str(e)][3] = (1-alpha)*Chi_old + alpha*Chi_new
+            Chi_update = (1-alpha)*Chi_old + alpha*Chi_new
+
+            self.pop_link_dict[str(s)+str(e)][3] = Chi_update
+            self.hist_dict[str(s)+str(e)].append(Chi_update)
             
             if (np.absolute(np.imag(Chi_old - Chi_new))  > self.Chi_dif_bd) or (np.absolute(np.real(Chi_old - Chi_new)) > self.Chi_dif_bd):
 
                 conv = False
 
-        return mu_arr, conv
+        return mu_arr, conv, mu_hist
 
 
             

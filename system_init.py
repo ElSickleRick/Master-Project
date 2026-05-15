@@ -184,7 +184,7 @@ class system_init:
 
         for x in pop_link_dict: 
             a, b, J, chi = pop_link_dict[x] # link a -> b (<=> a<b)
-            Ham[a-1, b-1] = temp = (-J*(1+self.kappa/2)+J*self.kappa*(np.absolute(chi))**2)*np.conjugate(chi)/2 # only fills uper triangle
+            Ham[a-1, b-1] = temp = (-J*(1+self.kappa/2)+J*self.kappa*(np.absolute(chi))**2)*np.conjugate(chi)/2 # only fills upper triangle
 
         return Ham
 

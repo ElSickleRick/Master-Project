@@ -3,15 +3,18 @@ import matplotlib.pyplot as plt
 
 class analysis:
 
-    def __init__(self, T ,kappa, beta, pop_link_dict, eival, eivec, mu_arr):
+    def __init__(self, T ,kappa, beta, pop_link_dict, eival, eivec, mu_hist, mu_arr, link_hist_dict, sc_iter):
         
         self.T = T
         self.kappa = kappa
         self.beta = beta
         self.pop_link_dict = pop_link_dict 
         self.eival = eival
-        self.eivec = eivec 
+        self.eivec = eivec
+        self.mu_hist = mu_hist
         self.mu_arr = mu_arr
+        self.link_hist_dict = link_hist_dict
+        self.sc_iter = sc_iter
 
         return
 
@@ -46,7 +49,7 @@ class analysis:
 
     def free_en_calc(self):
         '''
-        calculates the free energy of a given mean field solution
+        calculates the free energy desnsity of a given mean field solution
 
         Returns:
         --------
@@ -63,10 +66,46 @@ class analysis:
             static += (J/2)*(1+self.kappa/4)
 
         mu_part = -np.sum(self.mu_arr)
-        print("constituents of free energy density: \n static:", 2*static/((self.T+1)*(self.T+2)), "\n chemical potential:", 2*mu_part/((self.T+1)*(self.T+2)), "\n mean field:", 2*F/((self.T+1)*(self.T+2)), "\n sum:", 2*(F+static+mu_part)/((self.T+1)*(self.T+2)))
 
 
-        return F + static + mu_part 
+        return 2*(F + static + mu_part)/((self.T+1)*(self.T+2))
+
+    def MF_iter_plot(self):
+
+        fig, ax = plt.subplots(2,2)
+        iterations = np.arange(1, self.sc_iter+1, 1)
+        self.mu_hist = self.mu_hist[1:][:]
+
+        for x in self.link_hist_dict:
+            hist = self.link_hist_dict[x]
+            s = hist[0] 
+            e = hist[1]
+            hist = hist[2:]
+
+
+            ax[0][0].plot(iterations, np.absolute(hist), label=f"link {s} -> {e}")
+            ax[0][1].plot(iterations, np.angle(hist), label=f"link {s} -> {e}")
+        
+        for n in range(0, int(np.size(self.mu_hist, 1))):  
+            ax[1][0].plot(iterations, self.mu_hist[:, n], label=f"site {n+1}")
+
+
+        fig.suptitle(rf"evolution of mean field parameters over iterations for one triangle ( $\beta$ ={self.beta}, $\kappa$ = {self.kappa})", fontsize = 'x-large')
+        for axes in ax.flat:
+            axes.set_xlabel("iterations", fontsize = 'large')
+        ax[0][0].set_ylabel("|$\chi_{ij}$|", fontsize = 'x-large')
+
+        ax[0][1].set_ylabel("phase of $\chi_{ij}$", fontsize = 'x-large')
+        ax[0][1].set_ylim(-np.pi, np.pi)
+
+        ax[1][0].set_ylabel("$\mu_i$", fontsize = 'x-large')
+
+
+        ax[0][0].legend()
+        ax[0][1].legend()
+        ax[1][0].legend()
+        plt.show()
+
 
 
 

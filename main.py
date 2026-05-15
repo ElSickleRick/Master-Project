@@ -11,13 +11,14 @@ from analysis import analysis
 
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
-T  = 21 # # triangles in base
-kappa = 10 # biquadratic exchange constant
+T  = 2# # triangles in base
+kappa = 0 # biquadratic exchange constant
 beta = 50 # inverse temperatur
 
-N_dif_bd = 0.001 # maximum tolerance for deviation of local particle number from 1 => 0.001?
-mu_step = 0.5 # stepsize for chemical potential in [0,1)  ??? I am not sure why I put this in ???
-Chi_dif_bd = 0.001 # bound for convergence of absolute value of Chi (MF-parameter)i
+N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 => 0.001?
+mu_step = 0.3 # stepsize for chemical potential in [0,1)  ??? I am not sure why I put this in ???
+Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-parameter)
+rm_scale = 0.1 # maximum bound for random mixing parameter
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
 sc_iter_max = 1000 # maximum number of iterations before the self-consistency loop will terminat prematurely (requires max_iter_cond == True)
 
@@ -27,8 +28,10 @@ init = system_init(T, kappa)
 link_dict = init.link_dict_gen()
 
 mu_arr = init.mu_init()
+pop_link_dict = init.chi_init(init.J_init(link_dict)) # link dict containing the values for J and Chi on each bond
 
-pop_link_dict = init.chi_init(init.J_init(link_dict))
+link_hist_dict = init.link_dict_gen()
+mu_hist = np.zeros((1,int((T+1)*(T+2)/2)))
 
 conv = False 
 interrupt = False 
@@ -41,11 +44,11 @@ while conv == False:
     Ham = init.Ham_builder(pop_link_dict, mu_arr)
     eival, eivec = la.eigh(Ham, lower = False) # daigonalize Hamiltonian, entries are in upper traingle! 
 
-    MF = MF_loop(beta, eival, eivec, N_dif_bd, mu_step, pop_link_dict, Chi_dif_bd, conv)
+    MF = MF_loop(beta, eival, eivec, N_dif_bd, mu_step, pop_link_dict, Chi_dif_bd, rm_scale, conv, link_hist_dict)
 
     fe_di = np.array([MF.lin_fe_di(beta*x) for x in eival]) # calculate fermi_dirac distributions
 
-    mu_arr, conv  = MF.update(mu_arr, fe_di) # fermi_dirac distributions
+    mu_arr, conv, mu_hist  = MF.update(mu_arr, fe_di, mu_hist) # fermi_dirac distributions
 
     sc_iter += 1
 
@@ -55,7 +58,7 @@ while conv == False:
         conv = True 
         break
 
-    if (sc_iter-1) % 50 == 0 and sc_iter != 1:
+    if (sc_iter-1) % 100 == 0 and sc_iter != 1:
         print("finished iteration", sc_iter-1)
         
 
@@ -63,15 +66,15 @@ if interrupt == False:
     print("self-consistency loop finished normally after", sc_iter, "iterations")
 
 
-ana = analysis(T, kappa, beta, pop_link_dict, eival, eivec, mu_arr)
+ana = analysis(T, kappa, beta, pop_link_dict, eival, eivec, mu_hist,  mu_arr, link_hist_dict, sc_iter)
 
-mean, std, Chi_abs_arr = ana.Chi_abs_dist_plot()
-
-
-print("mean is", mean, "with standard deviation", std)
+# mean, std, Chi_abs_arr = ana.Chi_abs_dist_plot()
+# print("mean is", mean, "with standard deviation", std)
 
 F = ana.free_en_calc()
 
-print(pop_link_dict)
 
-plt.show()
+ana.MF_iter_plot()
+
+
+
