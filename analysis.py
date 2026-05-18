@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 class analysis:
 
-    def __init__(self, T ,kappa, beta, pop_link_dict, eival, eivec, mu_hist, mu_arr, link_hist_dict, sc_iter):
+    def __init__(self, T ,kappa, beta,  pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, sc_iter):
         
         self.T = T
         self.kappa = kappa
@@ -11,9 +11,9 @@ class analysis:
         self.pop_link_dict = pop_link_dict 
         self.eival = eival
         self.eivec = eivec
-        self.mu_hist = mu_hist
+        self.mu_hist_dict = mu_hist_dict
         self.mu_arr = mu_arr
-        self.link_hist_dict = link_hist_dict
+        self.bond_hist_dict = bond_hist_dict
         self.sc_iter = sc_iter
 
         return
@@ -70,27 +70,29 @@ class analysis:
 
         return 2*(F + static + mu_part)/((self.T+1)*(self.T+2))
 
+
+
     def MF_iter_plot(self):
 
         fig, ax = plt.subplots(2,2)
         iterations = np.arange(1, self.sc_iter+1, 1)
-        self.mu_hist = self.mu_hist[1:][:]
 
-        for x in self.link_hist_dict:
-            hist = self.link_hist_dict[x]
+        for x in self.bond_hist_dict:
+            hist = self.bond_hist_dict[x]
             s = hist[0] 
             e = hist[1]
             hist = hist[2:]
 
 
-            ax[0][0].plot(iterations, np.absolute(hist), label=f"link {s} -> {e}")
-            ax[0][1].plot(iterations, np.angle(hist), label=f"link {s} -> {e}")
+            ax[0][0].scatter(iterations, np.absolute(hist), s = 4, label=f"bond {s} -> {e}")
+            ax[0][1].scatter(iterations, np.angle(hist), s = 4, label=f"bond {s} -> {e}")
         
-        for n in range(0, int(np.size(self.mu_hist, 1))):  
-            ax[1][0].plot(iterations, self.mu_hist[:, n], label=f"site {n+1}")
+        for x in self.mu_hist_dict:
+            mu_hist = self.mu_hist_dict[x]
+            ax[1][0].scatter(iterations, mu_hist, s = 4, label=f"site {x}")
 
 
-        fig.suptitle(rf"evolution of mean field parameters over iterations for one triangle ( $\beta$ ={self.beta}, $\kappa$ = {self.kappa})", fontsize = 'x-large')
+        fig.suptitle(rf"evolution of mean field parameters over iterations for {int((self.T+1)*(self.T+2)/2)} sites ( $\beta$ ={self.beta}, $\kappa$ = {self.kappa})", fontsize = 'x-large')
         for axes in ax.flat:
             axes.set_xlabel("iterations", fontsize = 'large')
         ax[0][0].set_ylabel("|$\chi_{ij}$|", fontsize = 'x-large')
@@ -104,7 +106,25 @@ class analysis:
         ax[0][0].legend()
         ax[0][1].legend()
         ax[1][0].legend()
-        plt.show()
+  
+
+    def real_space_plot(self):
+            
+        c_max = self.T+1
+        grid = [[-self.T/2,-np.sqrt(3)*self.T/4]] # initialize with one site 
+
+        for i in np.arange(2, int((self.T+1)*(self.T+2)/2)+1): # site 1 at (0,0) is already included!
+            c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # column number c of site i
+            p = i - int(c*(c-1)/2)  # position p in column c, counting starts at 0
+            cords = [[(c-1)-(p-1)/2 - self.T/2, np.sqrt(3)*(p-1)/2 - np.sqrt(3)*self.T/4]] # calculate coordinates s.t. the origin is in the middle of the triangle
+            grid = np.append(grid, cords,  axis = 0)
+
+        fig, ax = plt.subplots()
+            
+        ax.scatter(grid[:,0], grid[:,1], c = 'black', s = 20)
+
+                
+
 
 
 

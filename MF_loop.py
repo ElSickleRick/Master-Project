@@ -5,20 +5,21 @@ from multiprocessing import pool
 class MF_loop:
 
 
-    def __init__(self, beta, eival, eivec,  N_dif_bd, mu_step, pop_link_dict, Chi_dif_bd, rm_scale, conv, hist_dict):
+    def __init__(self, T, beta, eival, eivec, N_dif_bd, mu_hist_dict, mu_step, pop_link_dict, bond_hist_dict, Chi_dif_bd, rm_scale, conv):
 	# mu step probably has to be adjusetd!
         	
-
+        self.T = T
         self.beta = beta 
         self.eival = eival
         self.eivec = eivec 
         self.N_dif_bd = N_dif_bd
+        self.mu_hist_dict = mu_hist_dict
         self.mu_step = mu_step
         self.pop_link_dict = pop_link_dict
+        self.bond_hist_dict = bond_hist_dict
         self.Chi_dif_bd = Chi_dif_bd
         self.rm_scale = rm_scale
         self.conv = conv
-        self.hist_dict = hist_dict
 
         return
 
@@ -38,19 +39,32 @@ class MF_loop:
         else:
             return (1/4)*(2-Ebeta)
     
-    def update(self, mu_arr, fe_di, mu_hist):
+    def update(self, mu_old, fe_di):
        
         conv = True 
 
         new = 2*(fe_di*np.conjugate(self.eivec)) @ np.transpose(self.eivec)
-
-        N_arr = np.diag(new).astype(float)
-        mu_arr += self.mu_step*np.random.rand()*(N_arr - 1) # Ill probably have to adjust the factor 0.1 later to fit the local energy scale
         
-        mu_hist = np.append(mu_hist, [mu_arr], axis = 0) 
+        N_arr = np.diag(new).astype(float)
+        
+        #step = np.full(int((self.T+1)*(self.T+2)/2), 0.4) + self.mu_step*np.random.rand(int((self.T+1)*(self.T+2)/2))
+        #random = np.ones(int((self.T+1)*(self.T+2)/2))
+        #mu_new = mu_old + step*(N_arr - 1) 
+        #temp = np.ones(int((self.T+1)*(self.T+2)/2))
+        # for i in range(0, int(((self.T+1)*(self.T+2)/2))): 
+            # if np.abs( np.abs(mu_new[i]-mu_old[i]) ) < 0.1:
+                # temp[i] = 0.3
+        # mu_new = mu_old + temp*step*(N_arr-1)
+
+        mu_new = mu_old + self.mu_step*np.random.rand(int((self.T+1)*(self.T+2)/2))*(N_arr -1)
+
+        for i in self.mu_hist_dict:
+            self.mu_hist_dict[i].append(mu_new[i])
 
         if all(np.absolute(N_arr - 1) < self.N_dif_bd) != True:
             conv = False
+        
+        bond_hist_dict_keys = self.bond_hist_dict.keys()
 
         for x in self.pop_link_dict:
 
@@ -61,13 +75,15 @@ class MF_loop:
             Chi_update = (1-alpha)*Chi_old + alpha*Chi_new
 
             self.pop_link_dict[str(s)+str(e)][3] = Chi_update
-            self.hist_dict[str(s)+str(e)].append(Chi_update)
             
+            if x in bond_hist_dict_keys:
+                self.bond_hist_dict[x].append(Chi_new)
+
             if (np.absolute(np.imag(Chi_old - Chi_new))  > self.Chi_dif_bd) or (np.absolute(np.real(Chi_old - Chi_new)) > self.Chi_dif_bd):
 
                 conv = False
 
-        return mu_arr, conv, mu_hist
+        return mu_new, conv
 
 
             

@@ -94,7 +94,9 @@ class system_init:
                 ul_dict.update({str(i) + str(i+c) : [i, i+c]})
                 ul_dict.update({str(i) + str(i+c+1) : [i, i+c+1]})
 
-        return ul_dict 
+        return ul_dict
+
+
 
     def J_init(self, link_dict):
 
@@ -154,8 +156,8 @@ class system_init:
         mu_arr = array of random values in [0,1)
                 -> length (T+1)(T+2)/2
         '''
-        # mu_arr = np.random.rand(int((self.T+1)*(self.T+2)/2)) #random initialization
-        mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2))
+        mu_arr = 0.1*np.random.rand(int((self.T+1)*(self.T+2)/2)) - 0.2 #random initialization
+        # mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
 
         return mu_arr 
 

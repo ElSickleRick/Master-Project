@@ -11,27 +11,56 @@ from analysis import analysis
 
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
-T  = 2# # triangles in base
-kappa = 0 # biquadratic exchange constant
+'Model parameters:'
+T  = 21 # # triangles in base
+kappa = 5 # biquadratic exchange constant
 beta = 50 # inverse temperatur
 
+'self consistency loop parameters:'
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 => 0.001?
-mu_step = 0.3 # stepsize for chemical potential in [0,1)  ??? I am not sure why I put this in ???
+mu_step = 0.6 # maximum bond for random mixing parameter for the chemical potentials 
 Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-parameter)
 rm_scale = 0.1 # maximum bound for random mixing parameter
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
-sc_iter_max = 1000 # maximum number of iterations before the self-consistency loop will terminat prematurely (requires max_iter_cond == True)
+sc_iter_max = 2500 # maximum number of iterations before the self-consistency loop will terminat prematurely (requires max_iter_cond == True)
 
+'analysis parameters:'
+mu_length = 6 # number of MF parameters + chemicals that get plotted
+if mu_length > int((T+1)*(T+2)/2): mu_length = int((T+1)*(T+2)/2) 
+bond_length = 9
+if bond_length > int(3*T*(T+1)/2): bond_length = int(3*(T+1)*T/2)
 
 init = system_init(T, kappa)
 
 link_dict = init.link_dict_gen()
 
+mu_select = np.random.choice(np.arange(0, int((T+1)*(T+2)/2)), mu_length, replace = False) # select mu_s to plot
+mu_hist_dict = {}
+for i in mu_select:
+    mu_hist_dict.update({i: []})
+bond_select = np.random.choice(list(link_dict.keys()), bond_length, replace = False) # select bonds to plot
+bond_hist_dict = {}
+for i in bond_select:
+    bond_hist_dict.update({i: [link_dict[i][0], link_dict[i][1]]})
+
+#traingle_hist_dict = {}
+#for x in mu_hist_dict:
+    #s = int(x) # site s 
+    #c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*s))) # calculate of column of site s 
+    #if c != T+1: # site lower 
+        #triangle_hist_dict.update({str(s) + str(s+c) : [s, s+c]}) # link bottom left to lower right 
+        #triangle_hist_dict.update({str(s+c) + str(s+c+1) : [s+c, s+c+1]}) # link bottom right to top 
+        #triangle_hist_dict.update({str(s) + str(s+c+1) : [s+c+1, s]}) # link top to lower left (reversed wrt the usual orientation)
+
+    #else:
+        #triangle_hist_dict.update({str(s) + str(s-c-1)}) # link lower left to lower right
+
+
+
 mu_arr = init.mu_init()
 pop_link_dict = init.chi_init(init.J_init(link_dict)) # link dict containing the values for J and Chi on each bond
 
-link_hist_dict = init.link_dict_gen()
-mu_hist = np.zeros((1,int((T+1)*(T+2)/2)))
+
 
 conv = False 
 interrupt = False 
@@ -44,11 +73,11 @@ while conv == False:
     Ham = init.Ham_builder(pop_link_dict, mu_arr)
     eival, eivec = la.eigh(Ham, lower = False) # daigonalize Hamiltonian, entries are in upper traingle! 
 
-    MF = MF_loop(beta, eival, eivec, N_dif_bd, mu_step, pop_link_dict, Chi_dif_bd, rm_scale, conv, link_hist_dict)
+    MF = MF_loop(T, beta, eival, eivec, N_dif_bd, mu_hist_dict, mu_step, pop_link_dict, bond_hist_dict, Chi_dif_bd, rm_scale, conv)
 
     fe_di = np.array([MF.lin_fe_di(beta*x) for x in eival]) # calculate fermi_dirac distributions
 
-    mu_arr, conv, mu_hist  = MF.update(mu_arr, fe_di, mu_hist) # fermi_dirac distributions
+    mu_arr, conv  = MF.update(mu_arr, fe_di) # fermi_dirac distributions
 
     sc_iter += 1
 
@@ -66,15 +95,19 @@ if interrupt == False:
     print("self-consistency loop finished normally after", sc_iter, "iterations")
 
 
-ana = analysis(T, kappa, beta, pop_link_dict, eival, eivec, mu_hist,  mu_arr, link_hist_dict, sc_iter)
 
 # mean, std, Chi_abs_arr = ana.Chi_abs_dist_plot()
 # print("mean is", mean, "with standard deviation", std)
+
+ana = analysis(T, kappa, beta, pop_link_dict, eival, eivec, mu_hist_dict,  mu_arr, bond_hist_dict, sc_iter)
 
 F = ana.free_en_calc()
 
 
 ana.MF_iter_plot()
+ana.real_space_plot()
+
+plt.show()
 
 
 
