@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt 
-import matplotlib.patches
+import matplotlib.patches as ptch
+import matplotlib.colors as clr
+import matplotlib.cm as cm
 
 class analysis:
 
@@ -108,6 +110,10 @@ class analysis:
         ax[0][0].legend()
         ax[0][1].legend()
         ax[1][0].legend()
+
+        ax[0][0].grid()
+        ax[0][1].grid()
+        ax[1][0].grid()
   
 
     def real_space_plot(self):
@@ -123,14 +129,14 @@ class analysis:
             cords = [[(c-1)-(p-1)/2 - self.T/2, np.sqrt(3)*(p-1)/2 - np.sqrt(3)*self.T/4]] # calculate coordinates s.t. the origin is in the middle of the triangle
             grid = np.append(grid, cords,  axis = 0)
                     
-        ax.scatter(grid[:,0], grid[:,1], marker = 'x', c = 'k',  s = 40, zorder=2) 
+        # ax.scatter(grid[:,0], grid[:,1], marker = 'x', c = 'k',  s = 40, zorder=2) 
 
         for link in self.pop_link_dict:
             
             lw_min = 0
             lw_max = 8
             chi_abs_min = 0
-            chi_abs_max = 0
+            chi_abs_max = 0.5
 
             s, e, J, chi = self.pop_link_dict[link]
 
@@ -139,11 +145,14 @@ class analysis:
             chi_abs = np.absolute(chi)
 
             if chi_abs < 0.001:
-                ax.plot(x, y, c = 'grey', linestyle = 'dotted', zorder = 2)
+                ax.plot(x, y, c = 'grey', linestyle = 'dotted', zorder = 3)
             
             else:
                 lw = (lw_max - lw_min)/(chi_abs_max - chi_abs_min)*(np.absolute(chi)-chi_abs_min) + lw_min      
-                ax.plot(x, y, c = 'k', linewidth = lw, zorder = 1)
+                ax.plot(x, y, c = 'k', linewidth = lw, zorder = 3)
+        
+        cmap = clr.LinearSegmentedColormap.from_list("blue_red", ["blue", "red"])
+        norm = clr.Normalize(vmin = -np.pi, vmax = np.pi)
 
         for plaqu in self.plaqu_dict:
             orientation, corners = self.plaqu_dict[plaqu]
@@ -151,11 +160,34 @@ class analysis:
             if orientation == 'up':
                 base = np.angle(self.pop_link_dict[str(corners[0]) + str(corners[1])][3]) 
                 right = np.angle(self.pop_link_dict[str(corners[1])+str(corners[2])][3])
-                left = - np.angle(self.pop_link_dict[str(corners[0] + str(corners[2])][3])
+                left = - np.angle(self.pop_link_dict[str(corners[0]) + str(corners[2])][3])
                 phase = base + left + right 
 
             elif orientation == 'down':
-                right = np.anlge(self.pop_link_dict
+                right = np.angle(self.pop_link_dict[str(corners[0]) + str(corners[2])][3])
+                top = - np.angle(self.pop_link_dict[str(corners[1]) + str(corners[2])][3])
+                left = - np.angle(self.pop_link_dict[str(corners[0]) + str(corners[1])][3])
+                phase = right + top + left
+            
+            color = cmap(norm(phase))
+            triangle = ptch.Polygon([grid[int(corners[0]-1)], grid[int(corners[1]-1)], grid[int(corners[2]-1)]], color = color, zorder = 1)
+            ax.add_patch(triangle)
+
+        sm = cm.ScalarMappable(norm = norm, cmap = cmap)
+        sm.set_array([])
+        cbar = plt.colorbar(sm, ax = ax)
+        cbar.set_ticks([-np.pi, 0, np.pi])
+        cbar.set_ticklabels([f"$-\pi$", "0", f"$\pi$"])
+
+    def DOS_hist(self): 
+        
+        fig, ax = plt.subplots()
+        ax.hist(self.eival, bins = 50)
+
+
+    
+
+            
 
         
 

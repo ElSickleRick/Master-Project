@@ -113,12 +113,12 @@ class system_init:
 
                 if p == 1: # case for s first site in column
 
-                    plaqu_dict.update({ str(s) + str(s+c) + str(s+c+1) : ['up', [s, s+c, s+c+1]] }) # up triangle with s as bottom left corner
+                    plaqu_dict.update({ str(int(s)) + str(int(s+c)) + str(int(s+c+1)) : ['up', [int(s), int(s+c), int(s+c+1)]] }) # up triangle with s as bottom left corner
 
                 else: # case for site not first in column
 
-                    plaqu_dict.update({ str(s) + str(s+c) + str(s+c+1): ['up', [s, s+c, s+c+1]] }) # up triangle with s as bottom left corner
-                    plaqu_dict.update({ str(s-1) + str(s) + str(s+c): ['down', [s-1, s, s+c]] }) # down triangle with s as top left corner
+                    plaqu_dict.update({ str(int(s)) + str(int(s+c)) + str(int(s+c+1)): ['up', [int(s), int(s+c), int(s+c+1)]] }) # up triangle with s as bottom left corner
+                    plaqu_dict.update({ str(int(s-1)) + str(int(s)) + str(int(s+c)): ['down', [int(s-1), int(s), int(s+c)]] }) # down triangle with s as top left corner
 
         return plaqu_dict
 
