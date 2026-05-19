@@ -43,7 +43,7 @@ class system_init:
         
         s = int((self.T+1)*(self.T+2)/2) # number of sites
         c_max = self.T + 1 # maximum column number (see below)
-        
+        d
         uNN_dict = {1 : [2,3]}
         
         for i in range(2, s+1): 
@@ -61,6 +61,7 @@ class system_init:
             uNN_dict.update({i : uNN})
             
         return uNN_dict 
+
 
     def link_dict_gen(self):
 
@@ -97,11 +98,36 @@ class system_init:
         return ul_dict
 
 
+    def plaqu_dict_gen(self):
+
+        plaqu_dict = {}
+
+        c_max = self.T + 1
+
+        for s in np.arange(1, (self.T+1)*(self.T+2)/2+1):
+        
+            c = int(np.ceil(-1/2 + np.sqrt(-3/4+2*s))) # column of site s
+            p = int(s - c*(c-1)/2) # position p inside column c 
+
+            if c != c_max: # check that site is not in last column
+
+                if p == 1: # case for s first site in column
+
+                    plaqu_dict.update({ str(s) + str(s+c) + str(s+c+1) : ['up', [s, s+c, s+c+1]] }) # up triangle with s as bottom left corner
+
+                else: # case for site not first in column
+
+                    plaqu_dict.update({ str(s) + str(s+c) + str(s+c+1): ['up', [s, s+c, s+c+1]] }) # up triangle with s as bottom left corner
+                    plaqu_dict.update({ str(s-1) + str(s) + str(s+c): ['down', [s-1, s, s+c]] }) # down triangle with s as top left corner
+
+        return plaqu_dict
+
+
 
     def J_init(self, link_dict):
 
         '''
-        Placeholder: inserts random J's from [0,1) into the link dictionary 
+        Placeholder: inserts J's (uniform, equal to 1) into the link dictionary 
 
         '''
 
@@ -114,6 +140,7 @@ class system_init:
             i += 1
 
         return link_dict
+
 
     def chi_init(self, link_dict):
 
@@ -146,6 +173,7 @@ class system_init:
 
         return link_dict
 
+
     def mu_init(self):
 
         '''
@@ -160,6 +188,7 @@ class system_init:
         # mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
 
         return mu_arr 
+
 
     def Ham_builder(self, pop_link_dict, mu_arr):
 

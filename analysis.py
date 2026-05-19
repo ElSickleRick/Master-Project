@@ -1,13 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt 
+import matplotlib.patches
 
 class analysis:
 
-    def __init__(self, T ,kappa, beta,  pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, sc_iter):
+    def __init__(self, T ,kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, sc_iter):
         
         self.T = T
         self.kappa = kappa
         self.beta = beta
+        self.plaqu_dict = plaqu_dict
         self.pop_link_dict = pop_link_dict 
         self.eival = eival
         self.eivec = eivec
@@ -43,7 +45,7 @@ class analysis:
         std = np.std(Chi_abs_arr) 
 
         fig, ax = plt.subplots()
-        ax.hist(Chi_abs_arr)
+        ax.hist(Chi_abs_arr) 
 
         return mean, std, Chi_abs_arr
 
@@ -112,18 +114,50 @@ class analysis:
             
         c_max = self.T+1
         grid = [[-self.T/2,-np.sqrt(3)*self.T/4]] # initialize with one site 
+        
+        fig, ax = plt.subplots()
 
         for i in np.arange(2, int((self.T+1)*(self.T+2)/2)+1): # site 1 at (0,0) is already included!
             c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # column number c of site i
             p = i - int(c*(c-1)/2)  # position p in column c, counting starts at 0
             cords = [[(c-1)-(p-1)/2 - self.T/2, np.sqrt(3)*(p-1)/2 - np.sqrt(3)*self.T/4]] # calculate coordinates s.t. the origin is in the middle of the triangle
             grid = np.append(grid, cords,  axis = 0)
+                    
+        ax.scatter(grid[:,0], grid[:,1], marker = 'x', c = 'k',  s = 40, zorder=2) 
 
-        fig, ax = plt.subplots()
+        for link in self.pop_link_dict:
             
-        ax.scatter(grid[:,0], grid[:,1], c = 'black', s = 20)
+            lw_min = 0
+            lw_max = 8
+            chi_abs_min = 0
+            chi_abs_max = 0
 
-                
+            s, e, J, chi = self.pop_link_dict[link]
+
+            x = [grid[s-1][0], grid[e-1][0]]
+            y = [grid[s-1][1], grid[e-1][1]]
+            chi_abs = np.absolute(chi)
+
+            if chi_abs < 0.001:
+                ax.plot(x, y, c = 'grey', linestyle = 'dotted', zorder = 2)
+            
+            else:
+                lw = (lw_max - lw_min)/(chi_abs_max - chi_abs_min)*(np.absolute(chi)-chi_abs_min) + lw_min      
+                ax.plot(x, y, c = 'k', linewidth = lw, zorder = 1)
+
+        for plaqu in self.plaqu_dict:
+            orientation, corners = self.plaqu_dict[plaqu]
+
+            if orientation == 'up':
+                base = np.angle(self.pop_link_dict[str(corners[0]) + str(corners[1])][3]) 
+                right = np.angle(self.pop_link_dict[str(corners[1])+str(corners[2])][3])
+                left = - np.angle(self.pop_link_dict[str(corners[0] + str(corners[2])][3])
+                phase = base + left + right 
+
+            elif orientation == 'down':
+                right = np.anlge(self.pop_link_dict
+
+        
 
 
 
