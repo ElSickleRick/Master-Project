@@ -66,7 +66,7 @@ class analysis:
 
         for x in self.pop_link_dict:
             s, e, J, Chi = self.pop_link_dict[x]
-            F += (J*(1*self.kappa/2)- (3/2)*J*self.kappa*(np.absolute(Chi))**2)*(np.absolute(Chi))**2 
+            F += (J*(1+self.kappa/2)- (3/2)*J*self.kappa*(np.absolute(Chi))**2)*(np.absolute(Chi))**2 
             static += (J/2)*(1+self.kappa/4)
 
         mu_part = -np.sum(self.mu_arr)

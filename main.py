@@ -12,22 +12,22 @@ from analysis import analysis
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 4 # # triangles in base
-kappa = 10 # biquadratic exchange constant
+T  = 3 # # triangles in base
+kappa = 0 # biquadratic exchange constant
 beta = 100 # inverse temperatur
 
 'self consistency loop parameters:'
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 => 0.001?
-mu_step = 0.5 # maximum bond for random mixing parameter for the chemical potentials 
+mu_step = 0.3 # maximum bond for random mixing parameter for the chemical potentials 
 Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-parameter)
 rm_scale = 0.3 # maximum bound for random mixing parameter
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
 sc_iter_max = 2500 # maximum number of iterations before the self-consistency loop will terminat prematurely (requires max_iter_cond == True)
 
 'analysis parameters:'
-mu_length = 100 # number of chemical potentials that are plotted
+mu_length = 7 # number of chemical potentials that are plotted
 if mu_length > int((T+1)*(T+2)/2): mu_length = int((T+1)*(T+2)/2)
-bond_length = 100 # number of bond MF-parameters that are plotted
+bond_length = 7 # number of bond MF-parameters that are plotted
 if bond_length > int(3*T*(T+1)/2): bond_length = int(3*(T+1)*T/2)
 
 init = system_init(T, kappa)
@@ -97,19 +97,16 @@ if interrupt == False:
     print("self-consistency loop finished normally after", sc_iter, "iterations")
 
 
-
-# mean, std, Chi_abs_arr = ana.Chi_abs_dist_plot()
-# print("mean is", mean, "with standard deviation", std)
-
 ana = analysis(T, kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict,  mu_arr, bond_hist_dict, sc_iter)
 
 F = ana.free_en_calc()
 
 print("free energy density:", F)
 
-ana.MF_iter_plot()
+
 ana.real_space_plot()
-# ana.DOS_hist()
+ana.MF_iter_plot()
+ana.DOS_hist()
 
 plt.show()
 
