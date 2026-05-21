@@ -43,8 +43,9 @@ class MF_loop:
        
         conv = True 
 
-        new = 2*(fe_di*np.conjugate(self.eivec)) @ np.transpose(self.eivec)
-        
+        # new = 2*(fe_di*np.conjugate(self.eivec)) @ np.transpose(self.eivec) # old version
+        new = 2*((fe_di*self.eivec) @ np.transpose(np.conjugate(self.eivec)))
+
         N_arr = np.diag(new).astype(float)
         
         #step = np.full(int((self.T+1)*(self.T+2)/2), 0.4) + self.mu_step*np.random.rand(int((self.T+1)*(self.T+2)/2))
@@ -56,7 +57,7 @@ class MF_loop:
                 # temp[i] = 0.3
         # mu_new = mu_old + temp*step*(N_arr-1)
 
-        mu_new = mu_old + self.mu_step*np.random.rand(int((self.T+1)*(self.T+2)/2))*(N_arr -1)
+        mu_new = mu_old + self.mu_step*np.random.rand(int((self.T+1)*(self.T+2)/2))*(N_arr - 1)
 
         for i in self.mu_hist_dict:
             self.mu_hist_dict[i].append(mu_new[i])

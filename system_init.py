@@ -163,8 +163,10 @@ class system_init:
         
         chi = 1*np.random.rand(int(3*self.T*(self.T+1)/2)) + 1j*np.random.rand(int(3*self.T*(self.T+1)/2))
         # chi = 1j*np.random.rand(int(3*self.T*(self.T+1)/2)) # imaginary initialization
-        # chi = 1*np.random.radn(int(3*self.T*(self.T+1)/2)) # real initialization
-        
+        # chi = 1*np.random.rand(int(3*self.T*(self.T+1)/2)) # real initialization
+        # chi = np.array([0.5,-0.5,0.5])
+        # chi = [0.5*np.exp(1j*np.pi/2), 0.5*np.exp(-1j*np.pi/2), 0.5]
+
         i = 0
         
         for x in link_dict:
@@ -184,7 +186,7 @@ class system_init:
         mu_arr = array of random values in [0,1)
                 -> length (T+1)(T+2)/2
         '''
-        mu_arr = 0.1*np.random.rand(int((self.T+1)*(self.T+2)/2)) - 0.2 #random initialization
+        mu_arr = 2*np.random.rand(int((self.T+1)*(self.T+2)/2)) - 1 #random initialization
         # mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
 
         return mu_arr 
@@ -215,7 +217,8 @@ class system_init:
 
         for x in pop_link_dict: 
             a, b, J, chi = pop_link_dict[x] # link a -> b (<=> a<b)
-            Ham[a-1, b-1] = temp = (-J*(1+self.kappa/2)+J*self.kappa*(np.absolute(chi))**2)*np.conjugate(chi)/2 # only fills upper triangle
+            Ham[a-1, b-1]  = (-J*(1+self.kappa/2)+J*self.kappa*(np.absolute(chi))**2)*np.conjugate(chi)/2 # only fills upper triangle
+
 
         return Ham
 

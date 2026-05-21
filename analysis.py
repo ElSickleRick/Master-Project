@@ -93,7 +93,7 @@ class analysis:
         
         for x in self.mu_hist_dict:
             mu_hist = self.mu_hist_dict[x]
-            ax[1][0].scatter(iterations, mu_hist, s = 4, label=f"site {x}")
+            ax[1][0].scatter(iterations, mu_hist, s = 4, label=f"site {x+1}")
 
 
         fig.suptitle(rf"evolution of mean field parameters over iterations for {int((self.T+1)*(self.T+2)/2)} sites ( $\beta$ ={self.beta}, $\kappa$ = {self.kappa})", fontsize = 'x-large')
@@ -145,39 +145,41 @@ class analysis:
             chi_abs = np.absolute(chi)
 
             if chi_abs < 0.001:
-                ax.plot(x, y, c = 'grey', linestyle = 'dotted', zorder = 3)
+                ax.plot(x, y, c = 'grey', linestyle = 'dotted', linewidth = 3, zorder = 3)
             
             else:
                 lw = (lw_max - lw_min)/(chi_abs_max - chi_abs_min)*(np.absolute(chi)-chi_abs_min) + lw_min      
                 ax.plot(x, y, c = 'k', linewidth = lw, zorder = 3)
         
-        cmap = clr.LinearSegmentedColormap.from_list("blue_red", ["blue", "red"])
-        norm = clr.Normalize(vmin = -np.pi, vmax = np.pi)
+        cmap_plaq = clr.LinearSegmentedColormap.from_list("periodic", ["purple", "blue", "white",  "red", "purple"])
+        norm_plaq = clr.Normalize(vmin = -np.pi, vmax = np.pi)
 
         for plaqu in self.plaqu_dict:
             orientation, corners = self.plaqu_dict[plaqu]
+            
 
             if orientation == 'up':
-                base = np.angle(self.pop_link_dict[str(corners[0]) + str(corners[1])][3]) 
-                right = np.angle(self.pop_link_dict[str(corners[1])+str(corners[2])][3])
-                left = - np.angle(self.pop_link_dict[str(corners[0]) + str(corners[2])][3])
-                phase = base + left + right 
+                base = self.pop_link_dict[str(corners[0]) + str(corners[1])][3]
+                right = self.pop_link_dict[str(corners[1])+str(corners[2])][3]
+                left = self.pop_link_dict[str(corners[0]) + str(corners[2])][3]
+                phase = np.angle(base*np.conjugate(left)*right) 
+
 
             elif orientation == 'down':
-                right = np.angle(self.pop_link_dict[str(corners[0]) + str(corners[2])][3])
-                top = - np.angle(self.pop_link_dict[str(corners[1]) + str(corners[2])][3])
-                left = - np.angle(self.pop_link_dict[str(corners[0]) + str(corners[1])][3])
-                phase = right + top + left
+                right = self.pop_link_dict[str(corners[0]) + str(corners[2])][3]
+                top = self.pop_link_dict[str(corners[1]) + str(corners[2])][3]
+                left = self.pop_link_dict[str(corners[0]) + str(corners[1])][3]
+                phase = np.angle(right*np.conjugate(top)*np.conjugate(left))
             
-            color = cmap(norm(phase))
+            color = cmap_plaq(norm_plaq(phase))
             triangle = ptch.Polygon([grid[int(corners[0]-1)], grid[int(corners[1]-1)], grid[int(corners[2]-1)]], color = color, zorder = 1)
             ax.add_patch(triangle)
 
-        sm = cm.ScalarMappable(norm = norm, cmap = cmap)
+        sm = cm.ScalarMappable(norm = norm_plaq, cmap = cmap_plaq)
         sm.set_array([])
-        cbar = plt.colorbar(sm, ax = ax)
-        cbar.set_ticks([-np.pi, 0, np.pi])
-        cbar.set_ticklabels([f"$-\pi$", "0", f"$\pi$"])
+        cbar = plt.colorbar(sm, ax = ax) 
+        cbar.set_ticks([-np.pi, -np.pi/2, 0, np.pi/2, np.pi])
+        cbar.set_ticklabels([f"$-\pi$", f"$-\pi / 2$", "0", f"$\pi / 2$", f"$\pi$"])
 
     def DOS_hist(self): 
         
