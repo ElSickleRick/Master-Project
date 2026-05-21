@@ -12,17 +12,17 @@ from analysis import analysis
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 1 # # triangles in base
-kappa = 5 # biquadratic exchange constant
+T  = 4 # # triangles in base
+kappa = 10 # biquadratic exchange constant
 beta = 100 # inverse temperatur
 
 'self consistency loop parameters:'
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 => 0.001?
-mu_step = 0.1 # maximum bond for random mixing parameter for the chemical potentials 
+mu_step = 0.5 # maximum bond for random mixing parameter for the chemical potentials 
 Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-parameter)
-rm_scale = 0.1 # maximum bound for random mixing parameter
+rm_scale = 0.3 # maximum bound for random mixing parameter
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
-sc_iter_max = 10000 # maximum number of iterations before the self-consistency loop will terminat prematurely (requires max_iter_cond == True)
+sc_iter_max = 3500 # maximum number of iterations before the self-consistency loop will terminat prematurely (requires max_iter_cond == True)
 
 'analysis parameters:'
 mu_length = 100 # number of chemical potentials that are plotted
@@ -33,8 +33,8 @@ if bond_length > int(3*T*(T+1)/2): bond_length = int(3*(T+1)*T/2)
 init = system_init(T, kappa)
 
 link_dict = init.link_dict_gen()
-
 plaqu_dict = init.plaqu_dict_gen()
+
 
 mu_select = np.random.choice(np.arange(0, int((T+1)*(T+2)/2)), mu_length, replace = False) # select mu_s to plot
 mu_hist_dict = {}
@@ -45,23 +45,16 @@ bond_hist_dict = {}
 for i in bond_select:
     bond_hist_dict.update({i: [link_dict[i][0], link_dict[i][1]]})
 
-#traingle_hist_dict = {}
-#for x in mu_hist_dict:
-    #s = int(x) # site s 
-    #c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*s))) # calculate of column of site s 
-    #if c != T+1: # site lower 
-        #triangle_hist_dict.update({str(s) + str(s+c) : [s, s+c]}) # link bottom left to lower right 
-        #triangle_hist_dict.update({str(s+c) + str(s+c+1) : [s+c, s+c+1]}) # link bottom right to top 
-        #triangle_hist_dict.update({str(s) + str(s+c+1) : [s+c+1, s]}) # link top to lower left (reversed wrt the usual orientation)
-
-    #else:
-        #triangle_hist_dict.update({str(s) + str(s-c-1)}) # link lower left to lower right
-
 
 
 mu_arr = init.mu_init()
-pop_link_dict = init.chi_init(init.J_init(link_dict)) # link dict containing the values for J and Chi on each bond
+pop_link_dict = init.J_init(link_dict) # link dict containing the values for J and Chi on each bond
+#pop_link_dict = init.chi_init(pop_link_dict)
 
+init.chi_VBS_init(pop_link_dict, 'down')
+
+
+print(pop_link_dict)
 
 
 conv = False 
@@ -89,7 +82,7 @@ while conv == False:
         conv = True 
         break
 
-    if (sc_iter-1) % 250 == 0 and sc_iter != 1:
+    if (sc_iter-1) % 100 == 0 and sc_iter != 1:
         print("finished iteration", sc_iter-1)
         
 
@@ -103,7 +96,7 @@ F = ana.free_en_calc()
 
 print("free energy density:", F)
 
-# mean, std, Chi_abs_arr = ana.Chi_abs_dist_plot()
+
 ana.real_space_plot()
 ana.MF_iter_plot()
 #ana.DOS_hist()
