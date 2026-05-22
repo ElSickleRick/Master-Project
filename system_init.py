@@ -159,9 +159,9 @@ class system_init:
                 -> chis are appended to the last postion of each value 
         '''
         
-        chi = 1*np.random.rand(int(3*self.T*(self.T+1)/2)) + 1j*np.random.rand(int(3*self.T*(self.T+1)/2))
+        # chi = 1*np.random.rand(int(3*self.T*(self.T+1)/2)) + 1j*np.random.rand(int(3*self.T*(self.T+1)/2))
         # chi = 1j*np.random.rand(int(3*self.T*(self.T+1)/2)) # imaginary initialization
-        # chi = 1*np.random.rand(int(3*self.T*(self.T+1)/2)) # real initialization
+        chi = 1*np.random.rand(int(3*self.T*(self.T+1)/2)) # real initialization
 
         i = 0
         
@@ -171,29 +171,38 @@ class system_init:
 
         return link_dict
 
-    def chi_VBS_init(self, link_dict, orient):
+    def chi_pi_phase_init(self, link_dict, orient):
         
         for x in link_dict:
             link_dict[x].append(1/np.sqrt(6))
 
-        for c in np.arange(1, self.T + 1): # loop over rows
-
-            for i in np.arange(1, int(np.floor(c/2))+1): # loop over every second site in row c
-
-                s = int(c*(c-1)/2 + 2*i)
-                print(s, 'in', c, 'with i', i)
-                
-                link_dict[str(s) + str(int(s+c))][3] = -1/np.sqrt(6)
-                print(str(s) + str(s+c))
-
-                if orient == 'down':
-
-                    link_dict[str(int(s+c)) + str(int(s+c+1))][3] = -1/np.sqrt(6)
-
-                elif orient == 'up':
-
-                    link_dict[str(int(s-1)) + str(s)][3] = -1/np.sqrt(6)
             
+        if orient == 'down': 
+
+            for c in np.arange(1, self.T + 1): # loop over every column except last one
+
+                for i in np.arange(1, int(np.floor(c/2))+1): # loop over every second site in column 
+                
+                    s = int(c*(c-1)/2 + 2*i) # site number
+                
+                    link_dict[str(s) + str(int(s+c))][3] = -1/np.sqrt(6) # link s -> bottom right neighbour of s
+                    link_dict[str(int(s+c)) + str(int(s+c+1))][3] = -1/np.sqrt(6) # link bottom right neighbour of s -> top right neighbour of s
+
+        elif orient == 'up':
+                    
+            for c in np.arange(1, self.T +2): # loop over !every! column
+
+                for i in np.arange(1, int(np.floor(c/2)+1)): # loop over every secons site in column
+
+                    s = int(c*(c-1)/2 + 2*i) # site number
+
+                    link_dict[str(int(s-c)) + str(s)][3] = -1/np.sqrt(6) # link bottom left neighbour of s -> s
+
+                    if c != self.T +1:
+
+                        link_dict[str(s) + str(s+c)][3] = - 1/np.sqrt(6) # link s -> bottom right neighbour of s (only exists if not i nlast column)
+
+
 
 
 

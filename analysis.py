@@ -93,7 +93,7 @@ class analysis:
         
         for x in self.mu_hist_dict:
             mu_hist = self.mu_hist_dict[x]
-            ax[1][0].scatter(iterations, mu_hist, s = 4, label=f"site {x}")
+            ax[1][0].scatter(iterations, mu_hist, s = 4, label=f"site {x+1}")
 
 
         fig.suptitle(rf"evolution of mean field parameters over iterations for {int((self.T+1)*(self.T+2)/2)} sites ( $\beta$ ={self.beta}, $\kappa$ = {self.kappa})", fontsize = 'x-large')
