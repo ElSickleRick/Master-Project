@@ -4,7 +4,7 @@ import time
 
 class system_init:
 
-    def __init__(self,T, kappa): 
+    def __init__(self,T, kappa, rng): 
 
         '''
         Parameters
@@ -19,6 +19,7 @@ class system_init:
 
         self.T = T
         self.kappa = kappa
+        self.rng = rng
         return
 
 
@@ -140,7 +141,7 @@ class system_init:
         return link_dict
 
 
-    def chi_init(self, link_dict):
+    def chi_random_init(self, link_dict):
 
         '''
         inserts random values for chi (MF-parameter) into the the link dictionary. 
@@ -159,9 +160,9 @@ class system_init:
                 -> chis are appended to the last postion of each value 
         '''
         
-        # chi = 1*np.random.rand(int(3*self.T*(self.T+1)/2)) + 1j*np.random.rand(int(3*self.T*(self.T+1)/2))
-        # chi = 1j*np.random.rand(int(3*self.T*(self.T+1)/2)) # imaginary initialization
-        chi = 1*np.random.rand(int(3*self.T*(self.T+1)/2)) # real initialization
+        chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) + 1j*self.rng.random(int(3*self.T*(self.T+1)/2))
+        # chi = 1j+self.rng.random(int(3*self.T*(self.T+1)/2)) # imaginary initialization
+        # chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) # real initialization
 
         i = 0
         
@@ -204,7 +205,27 @@ class system_init:
 
 
 
+    def chi_VBS_init(self, link_dict):
 
+        '''
+        only works for T = 3!
+        '''
+
+        if self.T != 3:
+            print("Error: VBS initialization only works for T = 3, input: T =", self.T, ".")
+            quit()
+        
+        for x in link_dict:
+            link_dict[x].append(0)
+
+        link_dict['12'][3] = 1
+        link_dict['36'][3] = 1
+        link_dict['45'][3] = 1
+        link_dict['78'][3] = 1
+        link_dict['910'][3] = 1
+
+        
+        
 
     def mu_init(self):
 
@@ -216,8 +237,9 @@ class system_init:
         mu_arr = array of random values in [0,1)
                 -> length (T+1)(T+2)/2
         '''
-        mu_arr = 2*np.random.rand(int((self.T+1)*(self.T+2)/2)) - 1 #random initialization
-        # mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
+        # mu_arr = self.rng.random(int((self.T+1)*(self.T+2)/2)) #random positive initialization
+        mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
+        # mu_arr = np.full(int((self.T+1)*(self.T+2)/2), -2)
 
         return mu_arr 
 

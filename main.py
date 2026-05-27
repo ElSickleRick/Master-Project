@@ -12,7 +12,7 @@ from analysis import analysis
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 6 # # triangles in base
+T  = 7 # # triangles in base
 kappa = 10 # biquadratic exchange constant
 beta = 100 # inverse temperatur
 
@@ -22,7 +22,7 @@ mu_step = 0.3 # maximum bond for random mixing parameter for the chemical potent
 Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-parameter)
 rm_scale = 0.1 # maximum bound for random mixing parameter
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
-sc_iter_max = 5000 # maximum number of iterations before the self-consistency loop will terminat prematurely (requires max_iter_cond == True)
+sc_iter_max = 2500 # maximum number of iterations before the self-consistency loop will terminat prematurely (requires max_iter_cond == True)
 
 'analysis parameters:'
 mu_length = 7 # number of chemical potentials that are plotted
@@ -30,7 +30,11 @@ if mu_length > int((T+1)*(T+2)/2): mu_length = int((T+1)*(T+2)/2)
 bond_length = 7 # number of bond MF-parameters that are plotted
 if bond_length > int(3*T*(T+1)/2): bond_length = int(3*(T+1)*T/2)
 
-init = system_init(T, kappa)
+
+seed = np.random.SeedSequence().entropy
+rng = np.random.default_rng(seed)
+
+init = system_init(T, kappa, rng)
 
 link_dict = init.link_dict_gen()
 plaqu_dict = init.plaqu_dict_gen()
@@ -49,12 +53,10 @@ for i in bond_select:
 
 mu_arr = init.mu_init()
 pop_link_dict = init.J_init(link_dict) # link dict containing the values for J and Chi on each bond
-pop_link_dict = init.chi_init(pop_link_dict)
 
-# init.chi_pi_phase_init(pop_link_dict, 'down')
-
-
-print(pop_link_dict)
+#init.chi_random_init(pop_link_dict)
+init.chi_pi_phase_init(pop_link_dict, 'down')
+#init.chi_VBS_init(pop_link_dict)
 
 
 conv = False 
@@ -99,12 +101,17 @@ print("free energy density:", F)
 
 ana.real_space_plot()
 ana.MF_iter_plot()
+# ana.Chi_ph_dist_plot()
+# ana.Chi_abs_dist_plot()
 #ana.DOS_hist()
+path = ana.Chi_path_plot()
 
 #print(pop_link_dict)
 #print(Ham)
 #print("mu array:", mu_arr)
 #print("eival:", eival)
+
+
 
 
 plt.show()

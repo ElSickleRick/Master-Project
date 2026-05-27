@@ -43,13 +43,24 @@ class analysis:
 
             Chi_abs_arr.append(np.absolute(self.pop_link_dict[x][3]))
 
-        mean = np.mean(Chi_abs_arr)
-        std = np.std(Chi_abs_arr) 
-
         fig, ax = plt.subplots()
         ax.hist(Chi_abs_arr) 
 
-        return mean, std, Chi_abs_arr
+        return Chi_abs_arr
+
+    def Chi_ph_dist_plot(self):
+        
+        Chi_ph_arr = []
+
+        for x in self.pop_link_dict:
+            
+            Chi_ph_arr.append(np.angle(self.pop_link_dict[x][3]))
+
+        fig, ax = plt.subplots()
+        ax.hist(Chi_ph_arr)
+
+        return(Chi_ph_arr)
+
 
     def free_en_calc(self):
         '''
@@ -185,6 +196,45 @@ class analysis:
         
         fig, ax = plt.subplots()
         ax.hist(self.eival, bins = 50)
+
+    def Chi_path_plot(self):
+        
+        mid = int(np.ceil((self.T/2+1))-1)
+
+        path = [np.absolute(self.pop_link_dict[str(int(self.T*(self.T+1)/2)) + str(int((self.T+1)*(self.T+2)/2))][3])]
+
+        for i in np.arange(self.T+1, 1, -1):
+            s = int(self.T*(self.T+1)/2+i)
+            path.append(np.absolute(self.pop_link_dict[str(int(s-1)) + str(s)][3]))
+
+        for i in np.arange(self.T+1, mid, -1):
+            s = int((i-1)*i/2+1)
+            sb = int((i-2)*(i-1)/2+1)
+            path.append(np.absolute(self.pop_link_dict[str(sb)+str(s)][3]))
+
+        for i in np.arange(1, mid):
+            s = int(mid*(mid-1)/2 + i)
+            path.append(np.absolute(self.pop_link_dict[str(s)+str(int(s+1))][3]))
+
+        for i in np.arange(mid, self.T+1):
+            s = int(i*(i+1)/2)
+            sa = int((i+1)*(i+2)/2)
+            path.append(np.absolute(self.pop_link_dict[str(s)+str(sa)][3]))
+        
+        path.append(np.absolute(self.pop_link_dict[str(int(self.T*(self.T+1)/2 + self.T)) + str(int(self.T*(self.T+1)/2+self.T+1))][3])) 
+        
+        fig, ax = plt.subplots()
+        ax.scatter(np.arange(0, len(path)), path)
+        
+        bl = self.T
+        rmid = int(bl-mid)
+
+        ticks =[0.5, mid + 0.5, bl + 0.5, bl + rmid + 0.5, 2*bl + 0.5, 2*bl + mid + 0.5]
+
+        ax.set_xticks( ticks ) 
+        ax.set_xticklabels(["C", "M", "C", "M", "M", "C"])
+        ax.grid()
+            
 
 
     
