@@ -5,7 +5,7 @@ from multiprocessing import pool
 class MF_loop:
 
 
-    def __init__(self, T, beta, eival, eivec, N_dif_bd, mu_hist_dict, mu_step, pop_link_dict, bond_hist_dict, Chi_dif_bd, rm_scale, conv):
+    def __init__(self, T, beta, eival, eivec, N_dif_bd, mu_hist_dict, mu_step, pop_link_dict, bond_hist_dict, Chi_dif_bd, rm_scale, conv, rng):
 	# mu step probably has to be adjusetd!
         	
         self.T = T
@@ -20,6 +20,7 @@ class MF_loop:
         self.Chi_dif_bd = Chi_dif_bd
         self.rm_scale = rm_scale
         self.conv = conv
+        self.rng = rng
 
         return
 
@@ -57,7 +58,7 @@ class MF_loop:
                 # temp[i] = 0.3
         # mu_new = mu_old + temp*step*(N_arr-1)
 
-        mu_new = mu_old + self.mu_step*np.random.rand(int((self.T+1)*(self.T+2)/2))*(N_arr - 1)
+        mu_new = mu_old + self.mu_step*self.rng.random(int((self.T+1)*(self.T+2)/2))*(N_arr - 1)
 
         for i in self.mu_hist_dict:
             self.mu_hist_dict[i].append(mu_new[i])
@@ -70,8 +71,8 @@ class MF_loop:
         for x in self.pop_link_dict:
 
             s, e, J, Chi_old = self.pop_link_dict[x]
-            alpha = self.rm_scale*np.random.rand()
-       
+            alpha = self.rm_scale*self.rng.random()
+
             Chi_new= new[s-1][e-1]
             Chi_update = (1-alpha)*Chi_old + alpha*Chi_new
 

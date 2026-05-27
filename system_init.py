@@ -160,9 +160,11 @@ class system_init:
                 -> chis are appended to the last postion of each value 
         '''
         
+        
         chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) + 1j*self.rng.random(int(3*self.T*(self.T+1)/2))
         # chi = 1j+self.rng.random(int(3*self.T*(self.T+1)/2)) # imaginary initialization
         # chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) # real initialization
+        # chi = np.ones(int(3*self.T*(self.T+1)/2))*(0.5-0.001*1j)
 
         i = 0
         
@@ -239,7 +241,7 @@ class system_init:
         '''
         # mu_arr = self.rng.random(int((self.T+1)*(self.T+2)/2)) #random positive initialization
         mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
-        # mu_arr = np.full(int((self.T+1)*(self.T+2)/2), -2)
+        # mu_arr = np.full(int((self.T+1)*(self.T+2)/2), 0.854)
 
         return mu_arr 
 

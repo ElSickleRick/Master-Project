@@ -12,13 +12,13 @@ from analysis import analysis
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 7 # # triangles in base
+T  = 1 # # triangles in base
 kappa = 10 # biquadratic exchange constant
-beta = 100 # inverse temperatur
+beta = 50 # inverse temperatur
 
 'self consistency loop parameters:'
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 => 0.001?
-mu_step = 0.3 # maximum bond for random mixing parameter for the chemical potentials 
+mu_step = 0.1 # maximum bond for random mixing parameter for the chemical potentials 
 Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-parameter)
 rm_scale = 0.1 # maximum bound for random mixing parameter
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
@@ -54,8 +54,8 @@ for i in bond_select:
 mu_arr = init.mu_init()
 pop_link_dict = init.J_init(link_dict) # link dict containing the values for J and Chi on each bond
 
-#init.chi_random_init(pop_link_dict)
-init.chi_pi_phase_init(pop_link_dict, 'down')
+init.chi_random_init(pop_link_dict)
+#init.chi_pi_phase_init(pop_link_dict, 'up')
 #init.chi_VBS_init(pop_link_dict)
 
 
@@ -70,7 +70,7 @@ while conv == False:
     Ham = init.Ham_builder(pop_link_dict, mu_arr)
     eival, eivec = la.eigh(Ham, lower = False) # daigonalize Hamiltonian, entries are in upper traingle! 
 
-    MF = MF_loop(T, beta, eival, eivec, N_dif_bd, mu_hist_dict, mu_step, pop_link_dict, bond_hist_dict, Chi_dif_bd, rm_scale, conv)
+    MF = MF_loop(T, beta, eival, eivec, N_dif_bd, mu_hist_dict, mu_step, pop_link_dict, bond_hist_dict, Chi_dif_bd, rm_scale, conv, rng)
 
     fe_di = np.array([MF.lin_fe_di(beta*x) for x in eival]) # calculate fermi_dirac distributions
 
@@ -103,13 +103,13 @@ ana.real_space_plot()
 ana.MF_iter_plot()
 # ana.Chi_ph_dist_plot()
 # ana.Chi_abs_dist_plot()
-#ana.DOS_hist()
-path = ana.Chi_path_plot()
+# ana.DOS_hist()
+# path = ana.Chi_path_plot()
 
-#print(pop_link_dict)
-#print(Ham)
-#print("mu array:", mu_arr)
-#print("eival:", eival)
+print(pop_link_dict)
+print(Ham)
+print("mu array:", mu_arr)
+print("eival:", eival)
 
 
 
