@@ -73,7 +73,7 @@ class MF_loop:
             s, e, J, Chi_old = self.pop_link_dict[x]
             alpha = self.rm_scale*self.rng.random()
 
-            Chi_new= new[s-1][e-1]
+            Chi_new= new[e-1][s-1]
             Chi_update = (1-alpha)*Chi_old + alpha*Chi_new
 
             self.pop_link_dict[str(s)+str(e)][3] = Chi_update
