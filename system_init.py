@@ -6,17 +6,6 @@ class system_init:
 
     def __init__(self,T, kappa, rng): 
 
-        '''
-        Parameters
-        ----------
-        T: int
-            # triangles in base = # sites in base -1
-            ->minimum is T = 1 
-        kappa: float   
-            strength of the biquadratic exchange constant
-
-        '''
-
         self.T = T
         self.kappa = kappa
         self.rng = rng
@@ -132,7 +121,10 @@ class system_init:
         '''
 
         J = np.ones(int(3*self.T*(self.T+1)/2))
+        # J = 0.5*self.rng.random(int(3*self.T*(self.T+1)/2)) + 0.5
         i = 0
+        
+        print('J:', J)
         
         for x in link_dict:
             link_dict[x].append(J[i])
@@ -163,8 +155,8 @@ class system_init:
         
         # chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) + 1j*self.rng.random(int(3*self.T*(self.T+1)/2))
         # chi = 1j+self.rng.random(int(3*self.T*(self.T+1)/2)) # imaginary initialization
-        # chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) # real initialization
-        chi = np.ones(int(3*self.T*(self.T+1)/2))*(0.5-0.00001*1j)
+        chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) # real initialization
+        # chi = np.ones(int(3*self.T*(self.T+1)/2))*(1-0.00001*1j)
 
         i = 0
         

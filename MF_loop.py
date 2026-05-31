@@ -43,9 +43,11 @@ class MF_loop:
     def update(self, mu_old, fe_di):
        
         conv = True 
-
+        
+        fe_di_mat = np.zeros((int((self.T+1)*(self.T+2)/2), int((self.T+1)*(self.T+2)/2)))
+        np.fill_diagonal(fe_di_mat, 2*fe_di)
         # new = 2*(fe_di*np.conjugate(self.eivec)) @ np.transpose(self.eivec) # old version
-        new = 2*((fe_di*self.eivec) @ np.transpose(np.conjugate(self.eivec)))
+        new = ((self.eivec @ fe_di_mat) @ np.transpose(np.conjugate(self.eivec)))
 
         N_arr = np.diag(new).astype(float)
         
@@ -65,7 +67,7 @@ class MF_loop:
 
         if all(np.absolute(N_arr - 1) < self.N_dif_bd) != True:
             conv = False
-        
+       
         bond_hist_dict_keys = self.bond_hist_dict.keys()
 
         for x in self.pop_link_dict:
