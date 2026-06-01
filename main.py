@@ -12,15 +12,15 @@ from analysis import analysis
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 3 # # triangles in base
+T  = 15 # # triangles in base
 kappa = 10 # biquadratic exchange constant
-beta = 50 # inverse temperatur
+beta = 100 # inverse temperatur
 
 'self consistency loop parameters:'
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 => 0.001?
-mu_step = 0.1 # maximum bond for random mixing parameter for the chemical potentials 
+mu_step = 0.7 # maximum bond for random mixing parameter for the chemical potentials 
 Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-parameter)
-rm_scale = 0.1 # maximum bound for random mixing parameter
+rm_scale = 0.4 # maximum bound for random mixing parameter
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
 sc_iter_max = 5000 # maximum number of iterations before the self-consistency loop will terminat prematurely (requires max_iter_cond == True)
 
@@ -54,8 +54,8 @@ for i in bond_select:
 mu_arr = init.mu_init()
 pop_link_dict = init.J_init(link_dict) # link dict containing the values for J and Chi on each bond
 
-#init.chi_random_init(pop_link_dict)
-init.chi_pi_phase_init(pop_link_dict, 'up')
+init.chi_random_init(pop_link_dict)
+# init.chi_pi_phase_init(pop_link_dict, 'down')
 #init.chi_VBS_init(pop_link_dict)
 
 
@@ -113,9 +113,10 @@ path = ana.Chi_path_plot()
 #print(pop_link_dict)
 #print(Ham)
 #print(fe_di)
-print("mu array:", mu_arr)
-print("eival:", eival)
+#print("mu array:", mu_arr)
+#print("eival:", eival)
 #print(np.absolute(eivec))
+
 
 
 

@@ -73,17 +73,15 @@ class analysis:
         '''
 
         F = -(1/self.beta)*np.sum(np.log(1+np.exp(-self.beta*self.eival)))
-        static = 0
 
         for x in self.pop_link_dict:
             s, e, J, Chi = self.pop_link_dict[x]
-            F += (J*(1+self.kappa/2)- (3/2)*J*self.kappa*(np.absolute(Chi))**2)*(np.absolute(Chi))**2 
-            static += (J/2)*(1+self.kappa/4)
+            F += (J*(1+self.kappa/2)- (3/2)*J*self.kappa*(np.absolute(Chi)**2))*(np.absolute(Chi)**2) 
 
         mu_part = -np.sum(self.mu_arr)
 
 
-        return 2*(F + static + mu_part)/((self.T+1)*(self.T+2))
+        return 2*(F + mu_part)/((self.T+1)*(self.T+2))
 
 
 

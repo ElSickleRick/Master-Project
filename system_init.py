@@ -121,10 +121,9 @@ class system_init:
         '''
 
         J = np.ones(int(3*self.T*(self.T+1)/2))
-        # J = 0.5*self.rng.random(int(3*self.T*(self.T+1)/2)) + 0.5
+        # J = 1.75*self.rng.random(int(3*self.T*(self.T+1)/2)) + 0.25
         i = 0
-        
-        print('J:', J)
+    
         
         for x in link_dict:
             link_dict[x].append(J[i])
@@ -153,9 +152,9 @@ class system_init:
         '''
         
         
-        # chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) + 1j*self.rng.random(int(3*self.T*(self.T+1)/2))
+        chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) + 1j*self.rng.random(int(3*self.T*(self.T+1)/2))
         # chi = 1j+self.rng.random(int(3*self.T*(self.T+1)/2)) # imaginary initialization
-        chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) # real initialization
+        # chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) # real initialization
         # chi = np.ones(int(3*self.T*(self.T+1)/2))*(1-0.00001*1j)
 
         i = 0
