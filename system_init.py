@@ -155,7 +155,9 @@ class system_init:
         chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) + 1j*self.rng.random(int(3*self.T*(self.T+1)/2))
         # chi = 1j+self.rng.random(int(3*self.T*(self.T+1)/2)) # imaginary initialization
         # chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) # real initialization
-        # chi = np.ones(int(3*self.T*(self.T+1)/2))*(1-0.00001*1j)
+        # chi = np.ones(int(3*self.T*(self.T+1)/2))*(1-0.0000000000001*1j)
+        # chi = self.rng.random(int((3*self.T*(self.T+1)/2-1)))
+        # chi = np.append(chi, 1+0.0000000000000000000001j)
 
         i = 0
         
@@ -230,9 +232,9 @@ class system_init:
         mu_arr = array of random values in [0,1)
                 -> length (T+1)(T+2)/2
         '''
-        mu_arr = self.rng.random(int((self.T+1)*(self.T+2)/2)) #random positive initialization
-        # mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
-        # mu_arr = np.full(int((self.T+1)*(self.T+2)/2), 0.854)
+        # mu_arr = self.rng.random(int((self.T+1)*(self.T+2)/2)) #random positive initialization
+        mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
+        # mu_arr = np.full(int((self.T+1)*(self.T+2)/2), 0)
 
         return mu_arr 
 

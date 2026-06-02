@@ -5,7 +5,7 @@ from multiprocessing import pool
 class MF_loop:
 
 
-    def __init__(self, T, beta, eival, eivec, N_dif_bd, mu_hist_dict, mu_step, pop_link_dict, bond_hist_dict, Chi_dif_bd, rm_scale, conv, rng):
+    def __init__(self, T, beta, eival, eivec, N_dif_bd, mu_hist_dict, mu_step, pop_link_dict, bond_hist_dict, Chi_dif_bd, rm_scale, plaqu_hist_dict,  conv, rng):
 	# mu step probably has to be adjusetd!
         	
         self.T = T
@@ -19,6 +19,7 @@ class MF_loop:
         self.bond_hist_dict = bond_hist_dict
         self.Chi_dif_bd = Chi_dif_bd
         self.rm_scale = rm_scale
+        self.plaqu_hist_dict = plaqu_hist_dict
         self.conv = conv
         self.rng = rng
 
@@ -46,24 +47,12 @@ class MF_loop:
         
         fe_di_mat = np.zeros((int((self.T+1)*(self.T+2)/2), int((self.T+1)*(self.T+2)/2)))
         np.fill_diagonal(fe_di_mat, 2*fe_di)
-        # new = 2*(fe_di*np.conjugate(self.eivec)) @ np.transpose(self.eivec) # old version
+
         new = ((self.eivec @ fe_di_mat) @ np.transpose(np.conjugate(self.eivec)))
 
         N_arr = np.diag(new).astype(float)
-        
-        #step = np.full(int((self.T+1)*(self.T+2)/2), 0.4) + self.mu_step*np.random.rand(int((self.T+1)*(self.T+2)/2))
-        #random = np.ones(int((self.T+1)*(self.T+2)/2))
-        #mu_new = mu_old + step*(N_arr - 1) 
-        #temp = np.ones(int((self.T+1)*(self.T+2)/2))
-        # for i in range(0, int(((self.T+1)*(self.T+2)/2))): 
-            # if np.abs( np.abs(mu_new[i]-mu_old[i]) ) < 0.1:
-                # temp[i] = 0.3
-        # mu_new = mu_old + temp*step*(N_arr-1)
-
         mu_new = mu_old + self.mu_step*self.rng.random(int((self.T+1)*(self.T+2)/2))*(N_arr - 1)
 
-        for i in self.mu_hist_dict:
-            self.mu_hist_dict[i].append(mu_new[i])
 
         if all(np.absolute(N_arr - 1) < self.N_dif_bd) != True:
             conv = False
@@ -80,12 +69,35 @@ class MF_loop:
 
             self.pop_link_dict[str(s)+str(e)][3] = Chi_update
             
-            if x in bond_hist_dict_keys:
-                self.bond_hist_dict[x].append(Chi_new)
-
             if (np.absolute(np.imag(Chi_old - Chi_new))  > self.Chi_dif_bd) or (np.absolute(np.real(Chi_old - Chi_new)) > self.Chi_dif_bd):
 
                 conv = False
+
+
+        for i in self.mu_hist_dict:
+            self.mu_hist_dict[i].append(mu_new[i])
+
+        for x in self.bond_hist_dict:
+            self.bond_hist_dict[x].append(self.pop_link_dict[x][3])
+
+        for p in self.plaqu_hist_dict:
+            orientation, corners = self.plaqu_hist_dict[p][:2]
+
+            if orientation == 'up':
+                base = self.pop_link_dict[str(corners[0]) + str(corners[1])][3]
+                right = self.pop_link_dict[str(corners[1])+str(corners[2])][3]
+                left = self.pop_link_dict[str(corners[0]) + str(corners[2])][3]
+                phase = np.angle(base*np.conjugate(left)*right) 
+
+
+            elif orientation == 'down':
+                right = self.pop_link_dict[str(corners[0]) + str(corners[2])][3]
+                top = self.pop_link_dict[str(corners[1]) + str(corners[2])][3]
+                left = self.pop_link_dict[str(corners[0]) + str(corners[1])][3]
+                phase = np.angle(right*np.conjugate(top)*np.conjugate(left))
+        
+            self.plaqu_hist_dict[p][2].append([phase])
+
 
         return mu_new, conv
 

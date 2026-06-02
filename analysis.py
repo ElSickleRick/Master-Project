@@ -6,11 +6,12 @@ import matplotlib.cm as cm
 
 class analysis:
 
-    def __init__(self, T ,kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, sc_iter):
+    def __init__(self, T ,kappa, beta, fe_di, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter):
         
         self.T = T
         self.kappa = kappa
         self.beta = beta
+        self.fe_di = fe_di
         self.plaqu_dict = plaqu_dict
         self.pop_link_dict = pop_link_dict 
         self.eival = eival
@@ -18,6 +19,7 @@ class analysis:
         self.mu_hist_dict = mu_hist_dict
         self.mu_arr = mu_arr
         self.bond_hist_dict = bond_hist_dict
+        self.plaqu_hist_dict = plaqu_hist_dict
         self.sc_iter = sc_iter
 
         return
@@ -83,6 +85,16 @@ class analysis:
 
         return 2*(F + mu_part)/((self.T+1)*(self.T+2))
 
+    def en_calc(self):
+
+        energy = np.sum(self.eival*2*self.fe_di)
+
+        for x in self.pop_link_dict:
+            s, e, J, Chi = self.pop_link_dict[x]
+            energy += (J*(1+self.kappa/2)-(3/2)*J*self.kappa*(np.absolute(Chi)**2))*(np.absolute(Chi)**2)
+
+        return (2*energy)/((self.T+1)*(self.T+2))
+
 
 
     def MF_iter_plot(self):
@@ -104,26 +116,37 @@ class analysis:
             mu_hist = self.mu_hist_dict[x]
             ax[1][0].scatter(iterations, mu_hist, s = 4, label=f"site {x+1}")
 
+        for p in self.plaqu_hist_dict:
+            orientation, corners, hist = self.plaqu_hist_dict[p]
+
+            ax[1][1].scatter(iterations, hist, s = 4, label=f"plaquette {corners} ({orientation})") 
+
+
 
         fig.suptitle(rf"evolution of mean field parameters over iterations for {int((self.T+1)*(self.T+2)/2)} sites ( $\beta$ ={self.beta}, $\kappa$ = {self.kappa})", fontsize = 'x-large')
         for axes in ax.flat:
             axes.set_xlabel("iterations", fontsize = 'large')
+
         ax[0][0].set_ylabel("|$\chi_{ij}$|", fontsize = 'x-large')
 
         ax[0][1].set_ylabel("phase of $\chi_{ij}$", fontsize = 'x-large')
-        ax[0][1].set_ylim(-np.pi, np.pi)
+        ax[0][1].set_ylim(-np.pi-1/4, np.pi+1/4)
+        ax[0][1].set_yticks([-np.pi, -np.pi/2, 0, np.pi/2, np.pi],)
+        ax[0][1].set_yticklabels([f"-$\pi$", f"$-\pi/2$", "0", f"$\pi/2$", f"$\pi$"])
+
+    
 
         ax[1][0].set_ylabel("$\mu_i$", fontsize = 'x-large')
 
+        ax[1][1].set_ylabel("plaquette flux")
+        ax[1][1].set_ylim(-np.pi-1/4, np.pi+1/4)
+        ax[1][1].set_yticks([-np.pi, -np.pi/2, 0, np.pi/2, np.pi],)
+        ax[1][1].set_yticklabels([f"-$\pi$", f"$-\pi/2$", "0", f"$\pi/2$", f"$\pi$"])
 
-        ax[0][0].legend()
-        ax[0][1].legend()
-        ax[1][0].legend()
 
-        ax[0][0].grid()
-        ax[0][1].grid()
-        ax[1][0].grid()
-  
+        for axes in ax.flat:
+            axes.legend()
+            axes.grid()  
 
     def real_space_plot(self):
             
@@ -179,6 +202,7 @@ class analysis:
                 top = self.pop_link_dict[str(corners[1]) + str(corners[2])][3]
                 left = self.pop_link_dict[str(corners[0]) + str(corners[1])][3]
                 phase = np.angle(right*np.conjugate(top)*np.conjugate(left))
+
             
             color = cmap(norm(phase))
             triangle = ptch.Polygon([grid[int(corners[0]-1)], grid[int(corners[1]-1)], grid[int(corners[2]-1)]], color = color, zorder = 1)
