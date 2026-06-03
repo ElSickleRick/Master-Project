@@ -4,52 +4,64 @@ import time
 
 class system_init:
 
-    def __init__(self,T, kappa, rng): 
+    def __init__(self,T, kappa, rng, chi_init): 
 
         self.T = T
         self.kappa = kappa
         self.rng = rng
+        self.chi_init = chi_init
+
         return
-
-
-    def uNN_dict_gen(self):
-
-        '''
-        Only allows unique nearest neighbors (uNN), such that there is no redundancy.
-        -> uNN are always above, above + right and below + right sites if existent
-
-        Returns
-        -------
-        NN_dict : dictionarie of !unique! uNN of all sites 
-        -> keys are site numbers
-        -> values are lists of uNN sites
-        -> counting starts at 1 and goes to (T+1)*(T+2)/2
+    
+    def init_master(self):
         
+        link_dict = self.link_dict_gen()
+        plaqu_dict = self.plaqu_dict_gen()
+        mu_arr = self.mu_init()
+        pop_link_dict = self.J_init(link_dict) # link dict containing the values for J and Chi on each bond
+
+        if self.chi_init == "complex" or self.chi_init == 0:
+            chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) + 1j*self.rng.random(int(3*self.T*(self.T+1)/2)) # complex initialization
+
+            i = 0
         
-        note: the idea is that to construct the Hamiltonian matrix, one can get 
-        away with only cosntructing the upper triangle and deduce the 
-        rest by hermicity.
-        '''
+            for x in link_dict:
+                link_dict[x].append(chi[i])
+                i += 1
+
+        elif self.chi_init == "real" or self.chi_init == 1:
+            chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) # real initialization
+
+            i = 0
         
-        s = int((self.T+1)*(self.T+2)/2) # number of sites
-        c_max = self.T + 1 # maximum column number (see below)
-        uNN_dict = {1 : [2,3]}
+            for x in link_dict:
+                link_dict[x].append(chi[i])
+                i += 1
+
+        elif self.chi_init == "up":
+            self.chi_pi_phase_init(pop_link_dict, 'up')
+
+        elif self.chi_init == "down":
+            self.chi_pi_phase_init(pop_link_dict, 'down')
+
+        elif self.chi_init == "VBS":
+            self.chi_VBS_init(pop_link_dict)
+
+        else:
+
+            #pop_link_dict['12'].append(1/2*np.exp(4j*np.pi/7))
+            #pop_link_dict['23'].append(1/2*np.exp(4j*np.pi/7))
+            #pop_link_dict['13'].append(1/2*np.exp(8j*np.pi/7))
+
+            chi = self.rng.random(int(3*self.T*(self.T+1)/2))*(1+1j*0.00001) 
+
+            i = 0
         
-        for i in range(2, s+1): 
-            
-            uNN = [] # save uNN for site i here
-            
-            c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # caclulate column number c of site i 
-            
-            if i != c*(c+1)/2: # neighbor above
-                uNN.extend([int(i+1)])
-                
-            if c != c_max: # neighbor above + right and below + right 
-                uNN.extend([int(i+c), int(i+c+1)])
-            
-            uNN_dict.update({i : uNN})
-            
-        return uNN_dict 
+            for x in link_dict:
+                link_dict[x].append(chi[i])
+                i += 1  
+
+        return link_dict, plaqu_dict, mu_arr, pop_link_dict
 
 
     def link_dict_gen(self):
@@ -112,6 +124,22 @@ class system_init:
         return plaqu_dict
 
 
+    def mu_init(self):
+
+        '''
+        creates random vlaues for mu (Placeholder-ish)
+
+        Returns
+        ------
+        mu_arr = array of random values in [0,1)
+                -> length (T+1)(T+2)/2
+        '''
+        # mu_arr = self.rng.random(int((self.T+1)*(self.T+2)/2)) #random positive initialization
+        mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
+        # mu_arr = np.full(int((self.T+1)*(self.T+2)/2), -0.865)
+
+        return mu_arr
+
 
     def J_init(self, link_dict):
 
@@ -131,41 +159,6 @@ class system_init:
 
         return link_dict
 
-
-    def chi_random_init(self, link_dict):
-
-        '''
-        inserts random values for chi (MF-parameter) into the the link dictionary. 
-        
-        Parameters
-        ---------
-        link_dict: dictionary 
-                -> dictionary conatining the links
-                -> values must be appendable lists
-        
-        Returns
-        ------
-        link_dict: dictionary 
-                same as input but with random chis appended at the end of each value
-                -> chis are complex with real and imaginary part in [0, 1)
-                -> chis are appended to the last postion of each value 
-        '''
-        
-        
-        chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) + 1j*self.rng.random(int(3*self.T*(self.T+1)/2))
-        # chi = 1j+self.rng.random(int(3*self.T*(self.T+1)/2)) # imaginary initialization
-        # chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) # real initialization
-        # chi = np.ones(int(3*self.T*(self.T+1)/2))*(1-0.0000000000001*1j)
-        # chi = self.rng.random(int((3*self.T*(self.T+1)/2-1)))
-        # chi = np.append(chi, 1+0.0000000000000000000001j)
-
-        i = 0
-        
-        for x in link_dict:
-            link_dict[x].append(chi[i])
-            i += 1
-
-        return link_dict
 
     def chi_pi_phase_init(self, link_dict, orient):
         
@@ -199,7 +192,6 @@ class system_init:
                         link_dict[str(s) + str(s+c)][3] = - 1/np.sqrt(6) # link s -> bottom right neighbour of s (only exists if not i nlast column)
 
 
-
     def chi_VBS_init(self, link_dict):
 
         '''
@@ -220,25 +212,6 @@ class system_init:
         link_dict['910'][3] = 1
 
         
-        
-
-    def mu_init(self):
-
-        '''
-        creates random vlaues for mu (Placeholder-ish)
-
-        Returns
-        ------
-        mu_arr = array of random values in [0,1)
-                -> length (T+1)(T+2)/2
-        '''
-        # mu_arr = self.rng.random(int((self.T+1)*(self.T+2)/2)) #random positive initialization
-        mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
-        # mu_arr = np.full(int((self.T+1)*(self.T+2)/2), 0)
-
-        return mu_arr 
-
-
     def Ham_builder(self, pop_link_dict, mu_arr):
 
         '''

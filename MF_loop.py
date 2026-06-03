@@ -29,24 +29,24 @@ class MF_loop:
     def lin_fe_di(self, Ebeta):
 
         '''
-        linearization of fermi dirac distribution 
+        linearization of fermi dirac distribution for the case that every energy is by default doubly degenerate (as it is in this case)
         '''
 
         if Ebeta < -2:
-            return 1
+            return 2
          
         elif Ebeta > 2:
             return 0
 
         else:
-            return (1/4)*(2-Ebeta)
+            return (1/2)*(2-Ebeta)
     
     def update(self, mu_old, fe_di):
        
         conv = True 
         
         fe_di_mat = np.zeros((int((self.T+1)*(self.T+2)/2), int((self.T+1)*(self.T+2)/2)))
-        np.fill_diagonal(fe_di_mat, 2*fe_di)
+        np.fill_diagonal(fe_di_mat, fe_di)
 
         new = ((self.eivec @ fe_di_mat) @ np.transpose(np.conjugate(self.eivec)))
 
@@ -73,7 +73,7 @@ class MF_loop:
 
                 conv = False
 
-
+                
         for i in self.mu_hist_dict:
             self.mu_hist_dict[i].append(mu_new[i])
 
@@ -130,7 +130,7 @@ class MF_loop:
                 expectation values of particle numbers on every site, ordered in the usual way
         '''
 
-        N_arr = 2*(np.absolute(self.eivec)**2 @ fe_di) # I am verry happy that this works but I should check it again
+        N_arr = (np.absolute(self.eivec)**2 @ fe_di) # I am verry happy that this works but I should check it again
         mu_arr += self.mu_step*np.random.rand()*(N_arr - 1) # Ill probably have to adjust the factor 0.1 later to fit the local energy scale    
         
 

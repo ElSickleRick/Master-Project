@@ -4,6 +4,49 @@ import matplotlib.patches as ptch
 import matplotlib.colors as clr
 import matplotlib.cm as cm
 
+class pre_analysis:
+
+    def __init__(self, T, mu_length, link_dict, bond_length, plaqu_dict, plaqu_length):
+        
+        self.T = T
+        self.mu_length = mu_length
+        self.link_dict = link_dict
+        self.bond_length = bond_length 
+        self.plaqu_dict = plaqu_dict
+        self.plaqu_length = plaqu_length
+
+        return
+
+    def hist_dict_gen(self):
+
+        if self.mu_length > int((self.T+1)*(self.T+2)/2): 
+            self.mu_length = int((self.T+1)*(self.T+2)/2)
+        mu_select = np.random.choice(np.arange(0, int((self.T+1)*(self.T+2)/2)), self.mu_length, replace = False) # select mu_s to plot
+        mu_hist_dict =  {}
+        for i in mu_select:
+            mu_hist_dict.update({i: []})
+        
+        if self.bond_length > int(3*(self.T)*(self.T+1)/2): 
+            self.bond_length = int(3*(self.T)*(self.T+1)/2)
+        bond_select = np.random.choice(list(self.link_dict.keys()), self.bond_length, replace = False) # select bonds to plot
+        bond_hist_dict = {}
+        for i in bond_select:
+            bond_hist_dict.update({i: [self.link_dict[i][0], self.link_dict[i][1]]})
+        
+        if self.plaqu_length > int(self.T**2): 
+            self.plaqu_length = int(self.T**2)
+        plaqu_select = np.random.choice(list(self.plaqu_dict.keys()), self.plaqu_length, replace = False) # select plaquettes to plot
+        plaqu_hist_dict = {}
+        for i in plaqu_select:
+            plaqu_hist_dict.update({i : [self.plaqu_dict[i][0], self.plaqu_dict[i][1], []]})
+        
+        return mu_hist_dict, bond_hist_dict, plaqu_hist_dict
+
+
+
+
+
+
 class analysis:
 
     def __init__(self, T ,kappa, beta, fe_di, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter):
