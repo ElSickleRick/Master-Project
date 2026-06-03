@@ -14,11 +14,11 @@ from analysis import analysis
 'Model parameters:'
 T  = 4 # # triangles in base
 kappa = 10 # biquadratic exchange constant
-beta = 250 # inverse temperatur
+beta = 100 # inverse temperatur
 
 'self consistency loop parameters:'
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 => 0.001?
-mu_step = 0.3 # maximum bond for random mixing parameter for the chemical potentials 
+mu_step = 0.2 # maximum bond for random mixing parameter for the chemical potentials 
 Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-parameter)
 rm_scale = 0.1 # maximum bound for random mixing parameter
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
