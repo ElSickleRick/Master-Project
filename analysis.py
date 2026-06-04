@@ -122,8 +122,10 @@ class analysis:
         for x in self.pop_link_dict:
             s, e, J, Chi = self.pop_link_dict[x]
             F += (J*(1+self.kappa/2)- (3/2)*J*self.kappa*(np.absolute(Chi)**2))*(np.absolute(Chi)**2) 
+            F += (J/2)*(1/4 + self.kappa/16)
 
         mu_part = -np.sum(self.mu_arr)
+
 
 
         return 2*(F + mu_part)/((self.T+1)*(self.T+2))
