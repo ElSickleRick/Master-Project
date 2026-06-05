@@ -121,8 +121,8 @@ class analysis:
 
         for x in self.pop_link_dict:
             s, e, J, Chi = self.pop_link_dict[x]
-            F += (J*(1+self.kappa/2)- (3/2)*J*self.kappa*(np.absolute(Chi)**2))*(np.absolute(Chi)**2) 
-            F += (J/2)*(1/4 + self.kappa/16)
+            F += 2*(J*(1+self.kappa/2)- 6*J*self.kappa*(np.absolute(Chi)**2))*(np.absolute(Chi)**2) 
+            F += J*(1/4 + self.kappa/16)
 
         mu_part = -np.sum(self.mu_arr)
 
@@ -262,7 +262,7 @@ class analysis:
     def DOS_hist(self): 
         
         fig, ax = plt.subplots()
-        ax.hist(self.eival, bins = 50)
+        ax.hist(self.eival, bins = 30)
 
     def Chi_path_plot(self):
         

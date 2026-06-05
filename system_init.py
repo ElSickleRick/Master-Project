@@ -56,7 +56,7 @@ class system_init:
             #pop_link_dict['23'].append(1/2*np.exp(4j*np.pi/7))
             #pop_link_dict['13'].append(1/2*np.exp(8j*np.pi/7))
 
-            chi = self.rng.random(int(3*self.T*(self.T+1)/2))*(1+1j*0.00001) 
+            chi = np.ones(int(3*self.T*(self.T+1)/2))*(1+1j*0.00001) 
 
             i = 0
         
@@ -240,7 +240,7 @@ class system_init:
 
         for x in pop_link_dict: 
             a, b, J, chi = pop_link_dict[x] # link a -> b (<=> a<b)
-            Ham[a-1, b-1]  = 2*(-J*(1+self.kappa/2)+J*self.kappa*(np.absolute(chi))**2)*np.conjugate(chi) # only fills upper triangle
+            Ham[a-1, b-1]  = (-J*(1+self.kappa/2)+4*J*self.kappa*(np.absolute(chi))**2)*np.conjugate(chi) # only fills upper triangle
 
 
         return Ham

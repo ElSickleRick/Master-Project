@@ -5,7 +5,7 @@ from multiprocessing import pool
 class MF_loop:
 
 
-    def __init__(self, T, beta, eival, eivec, N_dif_bd, mu_hist_dict, mu_step, pop_link_dict, bond_hist_dict, Chi_dif_bd, rm_scale, plaqu_hist_dict,  conv, rng):
+    def __init__(self, T, beta, eival, eivec, N_dif_bd, mu_hist_dict, mu_step_base, mu_rm_scale, pop_link_dict, bond_hist_dict, Chi_dif_bd, chi_rm_scale, plaqu_hist_dict,  conv, rng):
 	# mu step probably has to be adjusetd!
         	
         self.T = T
@@ -14,11 +14,12 @@ class MF_loop:
         self.eivec = eivec 
         self.N_dif_bd = N_dif_bd
         self.mu_hist_dict = mu_hist_dict
-        self.mu_step = mu_step
+        self.mu_step_base = mu_step_base
+        self.mu_rm_scale = mu_rm_scale
         self.pop_link_dict = pop_link_dict
         self.bond_hist_dict = bond_hist_dict
         self.Chi_dif_bd = Chi_dif_bd
-        self.rm_scale = rm_scale
+        self.chi_rm_scale = chi_rm_scale
         self.plaqu_hist_dict = plaqu_hist_dict
         self.conv = conv
         self.rng = rng
@@ -51,7 +52,7 @@ class MF_loop:
         new = ((self.eivec @ fe_di_mat) @ np.transpose(np.conjugate(self.eivec)))
 
         N_arr = np.diag(new).astype(float)
-        mu_new = mu_old + self.mu_step*self.rng.random(int((self.T+1)*(self.T+2)/2))*(N_arr - 1)
+        mu_new = mu_old + (self.mu_step_base*np.ones(int((self.T+1)*(self.T+2)/2)) + self.mu_rm_scale*(2*self.rng.random(int((self.T+1)*(self.T+2)/2))-1))*(N_arr - 1)
 
 
         if all(np.absolute(N_arr - 1) < self.N_dif_bd) != True:
@@ -62,9 +63,9 @@ class MF_loop:
         for x in self.pop_link_dict:
 
             s, e, J, Chi_old = self.pop_link_dict[x]
-            alpha = self.rm_scale*self.rng.random()
+            alpha = self.chi_rm_scale*self.rng.random()
 
-            Chi_new= new[e-1][s-1]
+            Chi_new= (1/2)*new[e-1][s-1]
             Chi_update = (1-alpha)*Chi_old + alpha*Chi_new
 
             self.pop_link_dict[str(s)+str(e)][3] = Chi_update
@@ -100,7 +101,6 @@ class MF_loop:
 
 
         return mu_new, conv
-
 
             
 
