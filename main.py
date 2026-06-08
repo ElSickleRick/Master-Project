@@ -14,9 +14,9 @@ rng = np.random.default_rng(seed)
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 13 # # triangles in base
+T  = 1 # # triangles in base
 kappa = 10 # biquadratic exchange constant
-beta = 150 # inverse temperatur
+beta = 50 # inverse temperatur
 
 
 'initialization parameters'
@@ -25,18 +25,18 @@ chi_init = "real" # variants for initializing chi, for options see below
 # options 0/"complex": complex, 1/"real": real, "up": 0/pi-flux phase with pi flux in up-triangles, "down": 0/pi-flux phase with pi flux in down-triangles, "VBS": valence bond solid (only for T=3!)
 
 'self consistency loop parameters:'
-mu_step_base = 0.5 # mean step size of the chemical potential 
-mu_rm_scale = 0.15 # maximum size of fluctuations in both directions around the means step for mu (so interval is mu_step_base +- mu_rm_scale)
-chi_rm_scale = 0.3 # maximum value of random mixing parameter for MF-bond-parameters
+mu_step_base = 0.1 # mean step size of the chemical potential 
+mu_rm_scale = 0.075 # maximum size of fluctuations in both directions around the means step for mu (so interval is mu_step_base +- mu_rm_scale)
+chi_rm_scale = 0.05 # maximum value of random mixing parameter for MF-bond-parameters
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 (usually 0.0001)
 Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-bond-parameter) (usually 0.0001)
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
 sc_iter_max = 5000 # maximum number of iterations before the self-consistency loop will terminate prematurely (requires max_iter_cond = True)
 
 'analysis parameters:'
-mu_length = 7 # number of chemical potentials that are plotted
-bond_length = 7 # number of MF-bond-parameters that are plotted
-plaqu_length = 7 # number of plaquettes that are plotted
+mu_length = 10 # number of chemical potentials that are plotted
+bond_length = 10 # number of MF-bond-parameters that are plotted
+plaqu_length = 10 # number of plaquettes that are plotted
 
 def MF_solver(link_dict, plaqu_dict, mu_arr, pop_link_dict  ):
     
@@ -84,6 +84,15 @@ def MF_solver(link_dict, plaqu_dict, mu_arr, pop_link_dict  ):
     
     return(link_dict, plaqu_dict, mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, fe_di, sc_iter)
 
+def random_phase_var(pop_link_dict):
+
+    for x in pop_link_dict:
+
+        pop_link_dict[x][3] *= np.exp(1j*(rng.random()*0.001 - 0.0002))
+
+    return pop_link_dict
+
+
 def gauge_trafo(pop_link_dict):
 
 
@@ -130,14 +139,18 @@ ana = analysis(T, kappa, beta, fe_di, plaqu_dict, pop_link_dict, eival, eivec, m
 
 ana.real_space_plot()
 ana.MF_iter_plot()
+ana.DOS_hist()
 
 fig, ax = plt.subplots()
 ax.scatter(np.arange(0,sc_iter), free_en_hist)
+fig.suptitle("evolution of 'free energy'")
 
 f = ana.free_en_calc()
 print("free energy density", f)
 
-pop_link_dict = gauge_trafo(pop_link_dict)
+
+pop_link_dict = random_phase_var(pop_link_dict)
+# pop_link_dict = gauge_trafo(pop_link_dict)
 
 link_dict, plaqu_dict, mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, fe_di, sc_iter= MF_solver(link_dict, plaqu_dict, mu_arr, pop_link_dict )
 ana = analysis(T, kappa, beta, fe_di, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict,  mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
@@ -155,16 +168,17 @@ ana.MF_iter_plot()
 #ana.MF_iter_plot()
 # ana.Chi_ph_dist_plot()
 # ana.Chi_abs_dist_plot()
-ana.DOS_hist()
+# ana.DOS_hist()
 #energy = ana.en_calc()
 #path = ana.Chi_path_plot()
 
 #print(pop_link_dict)
 #print(Ham)
 #print(fe_di)
-#print("mu array:", mu_arr)
+print("mu array:", mu_arr)
 #print("eival:", eival)
 #print(np.absolute(eivec))
+#print(eivec)
 
 #print("energy:", energy)
 

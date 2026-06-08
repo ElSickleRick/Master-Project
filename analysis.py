@@ -151,11 +151,11 @@ class analysis:
             hist = self.bond_hist_dict[x]
             s = hist[0] 
             e = hist[1]
-            hist = hist[2:]
+            history = hist[2:]
 
 
-            ax[0][0].scatter(iterations, np.absolute(hist), s = 4, label=f"bond {s} -> {e}")
-            ax[0][1].scatter(iterations, np.angle(hist), s = 4, label=f"bond {s} -> {e}")
+            ax[0][0].scatter(iterations, np.absolute(history), s = 4, label=f"bond {s} -> {e}")
+            ax[0][1].scatter(iterations, np.angle(history), s = 4, label=f"bond {s} -> {e}")
         
         for x in self.mu_hist_dict:
             mu_hist = self.mu_hist_dict[x]
@@ -262,7 +262,8 @@ class analysis:
     def DOS_hist(self): 
         
         fig, ax = plt.subplots()
-        ax.hist(self.eival, bins = 30)
+        ax.hist(self.eival, bins = 24)
+        ax.set_title(rf"DOS for {int((self.T+1)*(self.T+2)/2)} sites, $\kappa$ = {self.kappa}, $\beta$ = {self.beta}")
 
     def Chi_path_plot(self):
         

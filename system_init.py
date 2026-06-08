@@ -56,13 +56,21 @@ class system_init:
             #pop_link_dict['23'].append(1/2*np.exp(4j*np.pi/7))
             #pop_link_dict['13'].append(1/2*np.exp(8j*np.pi/7))
 
-            chi = np.ones(int(3*self.T*(self.T+1)/2))*(1+1j*0.00001) 
-
-            i = 0
-        
             for x in link_dict:
-                link_dict[x].append(chi[i])
-                i += 1  
+                link_dict[x].append(1/np.sqrt(6)*np.exp(1j*0.0000000001))
+
+
+            for c in np.arange(1, self.T +2): # loop over !every! column
+
+                for i in np.arange(1, int(np.floor(c/2)+1)): # loop over every secons site in column
+
+                    s = int(c*(c-1)/2 + 2*i) # site number
+
+                    link_dict[str(int(s-c)) + str(s)][3] = -1/(2*np.sqrt(6)*np.exp(1j*0.0000000001)) # link bottom left neighbour of s -> s
+
+                    if c != self.T +1:
+
+                        link_dict[str(s) + str(s+c)][3] = - 1/(2*np.sqrt(6)*np.exp(1j*0.0000000001)) # link s -> bottom right neighbour of s (only exists if not i nlast column)
 
         return link_dict, plaqu_dict, mu_arr, pop_link_dict
 
@@ -138,8 +146,8 @@ class system_init:
                 -> length (T+1)(T+2)/2
         '''
         # mu_arr = self.rng.random(int((self.T+1)*(self.T+2)/2)) #random positive initialization
-        mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
-        # mu_arr = np.full(int((self.T+1)*(self.T+2)/2), -0.865)
+        # mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
+        mu_arr = np.full(int((self.T+1)*(self.T+2)/2), 0.865)
 
         return mu_arr
 
@@ -177,8 +185,8 @@ class system_init:
                 
                     s = int(c*(c-1)/2 + 2*i) # site number
                 
-                    link_dict[str(s) + str(int(s+c))][3] = -1/np.sqrt(6) # link s -> bottom right neighbour of s
-                    link_dict[str(int(s+c)) + str(int(s+c+1))][3] = -1/np.sqrt(6) # link bottom right neighbour of s -> top right neighbour of s
+                    link_dict[str(s) + str(int(s+c))][3] = -1/(2*np.sqrt(6)) # link s -> bottom right neighbour of s
+                    link_dict[str(int(s+c)) + str(int(s+c+1))][3] = -1/(2*np.sqrt(6)) # link bottom right neighbour of s -> top right neighbour of s
 
         elif orient == 'up':
                     
@@ -188,11 +196,11 @@ class system_init:
 
                     s = int(c*(c-1)/2 + 2*i) # site number
 
-                    link_dict[str(int(s-c)) + str(s)][3] = -1/np.sqrt(6) # link bottom left neighbour of s -> s
+                    link_dict[str(int(s-c)) + str(s)][3] = -1/(2*np.sqrt(6)) # link bottom left neighbour of s -> s
 
                     if c != self.T +1:
 
-                        link_dict[str(s) + str(s+c)][3] = - 1/np.sqrt(6) # link s -> bottom right neighbour of s (only exists if not i nlast column)
+                        link_dict[str(s) + str(s+c)][3] = - 1/(2*np.sqrt(6)) # link s -> bottom right neighbour of s (only exists if not i nlast column)
 
 
     def chi_VBS_init(self, link_dict):
@@ -208,11 +216,11 @@ class system_init:
         for x in link_dict:
             link_dict[x].append(0)
 
-        link_dict['12'][3] = 1
-        link_dict['36'][3] = 1
-        link_dict['45'][3] = 1
-        link_dict['78'][3] = 1
-        link_dict['910'][3] = 1
+        link_dict['12'][3] = 0.5
+        link_dict['36'][3] = 0.5
+        link_dict['45'][3] = 0.5
+        link_dict['78'][3] = 0.5
+        link_dict['910'][3] = 0.5
 
         
     def Ham_builder(self, pop_link_dict, mu_arr):
