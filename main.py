@@ -2,32 +2,34 @@ import numpy as np
 # import numba as nb
 import scipy.linalg as la 
 import matplotlib.pyplot as plt 
+import os
+import pickle
 
 from system_init import system_init 
 from MF_loop import MF_loop
 from analysis import pre_analysis, analysis
 
-seed = np.random.SeedSequence().entropy # pull rng initialization seed from system entropy
-# seed = 13082203210817060306 # fixed rng initializtaion seed 
+# seed = np.random.SeedSequence().entropy # pull rng initialization seed from system entropy
+seed = 13082203210817060306 # fixed rng initializtaion seed 
 rng = np.random.default_rng(seed)
 
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 1 # # triangles in base
+#T  = 37 # # triangles in base
 kappa = 10 # biquadratic exchange constant
-beta = 50 # inverse temperatur
+beta = 150 # inverse temperatur
 
 
 'initialization parameters'
-chi_init = "real" # variants for initializing chi, for options see below
+chi_init = "down" # variants for initializing chi, for options see below
 
 # options 0/"complex": complex, 1/"real": real, "up": 0/pi-flux phase with pi flux in up-triangles, "down": 0/pi-flux phase with pi flux in down-triangles, "VBS": valence bond solid (only for T=3!)
 
 'self consistency loop parameters:'
-mu_step_base = 0.1 # mean step size of the chemical potential 
-mu_rm_scale = 0.075 # maximum size of fluctuations in both directions around the means step for mu (so interval is mu_step_base +- mu_rm_scale)
-chi_rm_scale = 0.05 # maximum value of random mixing parameter for MF-bond-parameters
+mu_step_base = 0.4 # mean step size of the chemical potential 
+mu_rm_scale = 0.1 # maximum size of fluctuations in both directions around the means step for mu (so interval is mu_step_base +- mu_rm_scale)
+chi_rm_scale = 0.3 # maximum value of random mixing parameter for MF-bond-parameters
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 (usually 0.0001)
 Chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-bond-parameter) (usually 0.0001)
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
@@ -88,7 +90,7 @@ def random_phase_var(pop_link_dict):
 
     for x in pop_link_dict:
 
-        pop_link_dict[x][3] *= np.exp(1j*(rng.random()*0.001 - 0.0002))
+        pop_link_dict[x][3] *= np.exp(1j*np.pi*0.001*(rng.random()*2 - 1))
 
     return pop_link_dict
 
@@ -98,7 +100,7 @@ def gauge_trafo(pop_link_dict):
 
     local_trafo = [0] # array for saving the local transformations (phase only). 0 is filler since site counting starts at 1. convention: c_i^dagger -> exp(i*phase)*c_i^\dagger
 
-    trafo = "stripes"
+    trafo = "random"
 
     if trafo == "stripes":
 
@@ -112,7 +114,7 @@ def gauge_trafo(pop_link_dict):
 
     elif trafo == "random":
 
-        local_trafo.extend(rng.random(int((T+1)*(T+2)/2)))
+        local_trafo.extend((np.pi/7)*rng.random(int((T+1)*(T+2)/2)))
 
 
 
@@ -131,56 +133,87 @@ def gauge_trafo(pop_link_dict):
         
     return pop_link_dict
 
-init = system_init(T, kappa, rng, chi_init)
-link_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master()
+path_head = "/home/kuerschner/Documents/Master-Project/data"
+project_name = "fs_extrapol_down_2606_01"
 
-link_dict, plaqu_dict, mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, fe_di, sc_iter= MF_solver(link_dict, plaqu_dict, mu_arr, pop_link_dict)
-ana = analysis(T, kappa, beta, fe_di, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict,  mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
+save_path = os.path.join(path_head, project_name) 
 
-ana.real_space_plot()
-ana.MF_iter_plot()
-ana.DOS_hist()
+if os.path.isdir(save_path):
+    print("error: the given project ", project_name, " already exists. Script stopped.")
+    
+else:
 
-fig, ax = plt.subplots()
-ax.scatter(np.arange(0,sc_iter), free_en_hist)
-fig.suptitle("evolution of 'free energy'")
+    for T in [10, 15, 20, 25, 30, 35, 40, 45]:
 
-f = ana.free_en_calc()
-print("free energy density", f)
+        print("now doing T=", T)
+
+        init = system_init(T, kappa, rng, chi_init)
+        link_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master()
+
+        link_dict, plaqu_dict, mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, fe_di, sc_iter= MF_solver(link_dict, plaqu_dict, mu_arr, pop_link_dict)
+        ana = analysis(T, kappa, beta, fe_di, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict,  mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
+
+        sub_path = f"T={T}"
+
+        os.makedirs(os.path.join(save_path, sub_path), exist_ok=True)
+
+        f = open(os.path.join(save_path, sub_path, 'pop_link_dict'+'.pkl'), 'wb')
+        pickle.dump(pop_link_dict, f)
+
+        f = open(os.path.join(save_path, sub_path, 'mu_arr'+'.pkl'), 'wb')
+        pickle.dump(mu_arr, f)
+
+        f = open(os.path.join(save_path, sub_path, 'T'+'.pkl'), 'wb')
+        pickle.dump(T, f)
 
 
-pop_link_dict = random_phase_var(pop_link_dict)
-# pop_link_dict = gauge_trafo(pop_link_dict)
+#ana.real_space_plot()
+#ana.MF_iter_plot()
+#ana.DOS_hist()
 
-link_dict, plaqu_dict, mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, fe_di, sc_iter= MF_solver(link_dict, plaqu_dict, mu_arr, pop_link_dict )
-ana = analysis(T, kappa, beta, fe_di, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict,  mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
-
-
-ana.real_space_plot()
-ana.MF_iter_plot()
-
-#plt.scatter(np.arange(0,sc_iter), free_en_hist)
+#fig, ax = plt.subplots()
+#ax.scatter(np.arange(0,sc_iter), free_en_hist)
+#fig.suptitle("evolution of 'free energy'")
 
 #f = ana.free_en_calc()
 #print("free energy density", f)
 
+
+# pop_link_dict = random_phase_var(pop_link_dict)
+# pop_link_dict = gauge_trafo(pop_link_dict)
+
+# link_dict, plaqu_dict, mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, fe_di, sc_iter= MF_solver(link_dict, plaqu_dict, mu_arr, pop_link_dict )
+# ana = analysis(T, kappa, beta, fe_di, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict,  mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
+
+
+# ana.real_space_plot()
+# ana.MF_iter_plot()
+
+#plt.scatter(np.arange(0,sc_iter), free_en_hist)
+
+# f = ana.free_en_calc()
+# print("free energy density", f)
+
 #ana.real_space_plot()
 #ana.MF_iter_plot()
 # ana.Chi_ph_dist_plot()
-# ana.Chi_abs_dist_plot()
+chi_abs_arr = ana.Chi_abs_dist_plot()
+print(chi_abs_arr)
+print("chi mean value:", np.mean(chi_abs_arr), " variance:", np.var(chi_abs_arr))
+print("mu mean value:", np.mean(mu_arr), " variance:", np.var(mu_arr))
 # ana.DOS_hist()
-#energy = ana.en_calc()
+# energy = ana.en_calc()
+# print("energy:", energy)
 #path = ana.Chi_path_plot()
 
 #print(pop_link_dict)
 #print(Ham)
 #print(fe_di)
-print("mu array:", mu_arr)
+#print("mu array:", mu_arr)
 #print("eival:", eival)
 #print(np.absolute(eivec))
 #print(eivec)
 
-#print("energy:", energy)
 
 #for x in pop_link_dict:
     #print(x, "absolute value", np.absolute(pop_link_dict[x][3]), "phase", np.angle(pop_link_dict[x][3]))
