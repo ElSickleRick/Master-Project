@@ -5,11 +5,6 @@ import matplotlib.pyplot as plt
 import os
 import pickle
 
-from system_init import system_init 
-from MF_loop import MF_loop
-from analysis import pre_analysis, analysis
-
-
 def lin_fe_di(Ebeta):
 
     '''
@@ -75,11 +70,14 @@ path_head = "/home/kuerschner/Documents/Master-Project/data"
 
 
 projects = {
-        "fs_extrapol_down_2906_03" : "down",
-        "fs_extrapol_up_2906_03": "up"
-        }
+        #"fs_extrapol_down_2906_03" : "down",
+        #"fs_extrapol_up_2906_03": "up",
+        "fs_extrapol_down_0107_02": "down",
+        "fs_extrapol_up_0107_02": "up",
+        "fs_extrapol_pi_half_0107_01" : f"$\pi$/2"
+            }
 
-x_max = 0.02
+x_max = 0.003
 fig, ax = plt.subplots(1,3)
 fit_range = np.linspace(0, x_max, 1000)
 
@@ -135,23 +133,23 @@ for project in projects:
 
         free_energy_arr.append(free_en_calc(T, beta, kappa, eival, mu_arr, pop_link_dict))
 
-    mu_fit = np.polyfit(inv_N, mu_mean, 3, w = [1/s for s in mu_stdm])
+    mu_fit = np.polyfit(inv_N, mu_mean, 1, w = [1/s for s in mu_stdm])
 
     ax[0].errorbar(inv_N, mu_mean, yerr = mu_stdm, fmt='x', label = str(projects[project]))
-    ax[0].plot(fit_range, [fit_fun(x,mu_fit) for x in fit_range], label = "fit")
+    ax[0].plot(fit_range, [fit_fun(x,mu_fit) for x in fit_range], label = f"fit {projects[project]}")
     ax[0].hlines(0, 0, x_max, linestyle = "--", color = 'k')
 
 
-    chi_abs_fit = np.polyfit(inv_N, chi_abs_mean, 3, w = [1/s for s in chi_abs_stdm])
+    chi_abs_fit = np.polyfit(inv_N, chi_abs_mean, 1, w = [1/s for s in chi_abs_stdm])
 
     ax[1].errorbar(inv_N, chi_abs_mean, yerr = chi_abs_stdm, fmt='x', label = str(projects[project]))
-    ax[1].plot(fit_range, [fit_fun(x,chi_abs_fit) for x in fit_range], label = "fit")
+    ax[1].plot(fit_range, [fit_fun(x,chi_abs_fit) for x in fit_range], label = f"fit {projects[project]}")
     ax[1].hlines(0.19754, 0, x_max, linestyle = "--", color = 'k')
     
-    free_energy_fit = np.polyfit(inv_N, free_energy_arr, 3)
+    free_energy_fit = np.polyfit(inv_N, free_energy_arr, 1)
 
     ax[2].scatter(inv_N, free_energy_arr, label = str(projects[project]))
-    ax[2].plot(fit_range, [fit_fun(x,free_energy_fit) for x in fit_range], label = "fit")
+    ax[2].plot(fit_range, [fit_fun(x,free_energy_fit) for x in fit_range], label = f"fit {projects[project]}")
     ax[2].hlines(-1.2206, 0, x_max, linestyle = "--", color = 'k')
 
 

@@ -6,14 +6,12 @@ import matplotlib.cm as cm
 
 class pre_analysis:
 
-    def __init__(self, T, mu_length, link_dict, bond_length, plaqu_dict, plaqu_length):
+    def __init__(self, T, link_dict, plaqu_dict, pre_ana_paras):
         
         self.T = T
-        self.mu_length = mu_length
         self.link_dict = link_dict
-        self.bond_length = bond_length 
         self.plaqu_dict = plaqu_dict
-        self.plaqu_length = plaqu_length
+        self.mu_length, self.bond_length, self.plaqu_length = pre_ana_paras
 
         return
 
@@ -47,14 +45,13 @@ class pre_analysis:
 
 
 
-class analysis:
+class post_analysis:
 
-    def __init__(self, T ,kappa, beta, fe_di, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter):
+    def __init__(self, T ,kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter):
         
         self.T = T
         self.kappa = kappa
         self.beta = beta
-        self.fe_di = fe_di
         self.plaqu_dict = plaqu_dict
         self.pop_link_dict = pop_link_dict 
         self.eival = eival
@@ -66,6 +63,51 @@ class analysis:
         self.sc_iter = sc_iter
 
         return
+
+    def plaqu_dict_check(self, target):
+    
+        """
+        checks wether a configuration complies with certain conditions on the plaquette flux pattern
+
+        INPUTS:
+        -------
+        target: float 
+                target flux in every plaquette (more complex conditions are not supported yet)
+
+        OUTPUTS:
+        -------
+        target_con: Boolean
+                True if condition applies, False if not 
+        """
+
+        target_con = True
+    
+        tolerance = 10**(-2) # maximum tolerance for deviations from target flux
+
+        for plaqu in self.plaqu_dict:
+            orientation, corners = self.plaqu_dict[plaqu]
+            
+
+            if orientation == 'up':
+                base = self.pop_link_dict[str(corners[0]) + str(corners[1])][3]
+                right = self.pop_link_dict[str(corners[1])+str(corners[2])][3]
+                left = self.pop_link_dict[str(corners[0]) + str(corners[2])][3]
+                phase = np.angle(base*np.conjugate(left)*right) 
+
+
+            elif orientation == 'down':
+                right = self.pop_link_dict[str(corners[0]) + str(corners[2])][3]
+                top = self.pop_link_dict[str(corners[1]) + str(corners[2])][3]
+                left = self.pop_link_dict[str(corners[0]) + str(corners[1])][3]
+                phase = np.angle(right*np.conjugate(top)*np.conjugate(left))
+
+
+            if np.absolute(phase - target) > tolerance: 
+                target_con = False 
+                break 
+
+        return target_con 
+    
 
     def Chi_abs_dist_plot(self):
 
@@ -128,17 +170,7 @@ class analysis:
 
 
         return 2*(F + mu_part )/((self.T+1)*(self.T+2))
-
-    def en_calc(self):
-
-        energy = np.sum(self.eival*2*self.fe_di)
-
-        for x in self.pop_link_dict:
-            s, e, J, Chi = self.pop_link_dict[x]
-            energy += 2*(J*(1+self.kappa/2)-6*J*self.kappa*(np.absolute(Chi)**2))*(np.absolute(Chi)**2)
-
-        return (2*energy)/((self.T+1)*(self.T+2))
-
+ 
 
 
     def MF_iter_plot(self):

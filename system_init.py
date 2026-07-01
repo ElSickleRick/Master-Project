@@ -4,26 +4,24 @@ import time
 
 class system_init:
 
-    def __init__(self,T, kappa, rng, chi_init): 
+    def __init__(self,T, kappa, rng): 
 
         self.T = T
         self.kappa = kappa
         self.rng = rng
-        self.chi_init = chi_init
 
         return
     
-    def init_master(self):
+    def init_master(self, chi_init):
         '''
         chi convention: the entry for link a -> b contains chi_{ab} ( ~ <c_a^\dag c_b>)
         '''
         
         link_dict = self.link_dict_gen()
         plaqu_dict = self.plaqu_dict_gen()
-        mu_arr = self.mu_init()
         pop_link_dict = self.J_init(link_dict) # link dict containing the values for J and Chi on each bond
 
-        if self.chi_init == "complex" or self.chi_init == 0:
+        if chi_init == "complex" or chi_init == 0:
             chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) + 1j*self.rng.random(int(3*self.T*(self.T+1)/2)) # complex initialization
 
             i = 0
@@ -32,7 +30,9 @@ class system_init:
                 link_dict[x].append(chi[i])
                 i += 1
 
-        elif self.chi_init == "real" or self.chi_init == 1:
+            mu_arr = self.mu_init(0)
+
+        elif chi_init == "real" or chi_init == 1:
             chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) # real initialization
 
             i = 0
@@ -41,17 +41,21 @@ class system_init:
                 link_dict[x].append(chi[i])
                 i += 1
 
-        elif self.chi_init == "up":
+        elif chi_init == "up":
             self.chi_pi_phase_init(pop_link_dict, 'up')
+            mu_arr = self.mu_init(0)
 
-        elif self.chi_init == "down":
+        elif chi_init == "down":
             self.chi_pi_phase_init(pop_link_dict, 'down')
+            mu_arr = self.mu_init(0)
 
-        elif self.chi_init == "zero":
+        elif chi_init == "zero":
             self.chi_zero_flux_init(pop_link_dict)
+            mu_arr = self.mu_init(-0.67574)
 
-        elif self.chi_init == "VBS":
+        elif chi_init == "VBS":
             self.chi_VBS_init(pop_link_dict)
+            mu_arr = self.mu_init(0)
 
         else:
 
@@ -115,6 +119,16 @@ class system_init:
 
     def plaqu_dict_gen(self):
 
+        """
+        generates a dictionary containing information on all plaquettes of the system
+
+        Returns
+        -------
+        plaqu_dict: dictionary
+                    the entries are two-component arrays, the first entrie being the orientation of the triangle (either "up" or "down"), the second entire is anarray of length 3 containing the indices of all points of the plaquette in ascending order  
+
+        """
+
         plaqu_dict = {}
 
         c_max = self.T + 1
@@ -138,7 +152,7 @@ class system_init:
         return plaqu_dict
 
 
-    def mu_init(self):
+    def mu_init(self, mu):
 
         '''
         creates random vlaues for mu (Placeholder-ish)
@@ -149,8 +163,8 @@ class system_init:
                 -> length (T+1)(T+2)/2
         '''
         # mu_arr = self.rng.random(int((self.T+1)*(self.T+2)/2)) #random positive initialization
-        mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
-        # mu_arr = np.full(int((self.T+1)*(self.T+2)/2), -1.0735)
+        # mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
+        mu_arr = np.full(int((self.T+1)*(self.T+2)/2), 0)
 
         return mu_arr
 
