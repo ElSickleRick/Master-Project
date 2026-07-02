@@ -41,18 +41,6 @@ def free_en_calc(T, beta, kappa, eival, mu_arr, pop_link_dict):
 
     return 2*(F + mu_part)/((T+1)*(T+2))
 
-
-def energy_calc(T, beta, kappa, eival, fe_di, mu_arr, pop_link_dict):
-
-    const = 0
-    
-    for x in pop_link_dict:
-        s, e, J, Chi = pop_link_dict[x] 
-        const += 2*((1+kappa/2)-6*kappa*np.absolute(Chi)**2)*np.absolute(Chi)**2
-
-
-    return 2*(np.sum(eival*fe_di) - np.sum(mu_arr) + const)/((T+1)*(T+2)) 
-
     
 def fit_fun(x, a):
 
@@ -66,26 +54,29 @@ def fit_fun(x, a):
     return y 
 
 
-path_head = "/home/kuerschner/Documents/Master-Project/data"
+path_head = "/home/kuerschner/Documents/Master-Project/data/fs_extrapol"
 
 
 projects = {
-        #"fs_extrapol_down_2906_03" : "down",
-        #"fs_extrapol_up_2906_03": "up",
-        "fs_extrapol_down_0107_02": "down",
-        "fs_extrapol_up_0107_02": "up",
-        "fs_extrapol_pi_half_0107_01" : f"$\pi$/2"
+        "down_0207_01": "down",
+        "up_0207_01": "up",
+        "zero_0207_01": "zero"
             }
 
-x_max = 0.003
+x_max = 0.06
 fig, ax = plt.subplots(1,3)
 fit_range = np.linspace(0, x_max, 1000)
+
+mu_tl = 0
+chi_abs_tl = 0.19754
+free_energy_tl  = -1.2206
+mu_title = chi_abs_title = free_energy_title = f"deviation from analytical value:"
 
 for project in projects:
 
     project_path = os.path.join(path_head, project)
     
-    inv_N = []
+    T_arr = []
     mu_mean = []
     mu_stdm = []
     chi_abs_mean = []
@@ -115,8 +106,8 @@ for project in projects:
         kappa = info["kappa"]
         beta = info["beta"]
         
-        N = ((T+1)*(T+2))/2
-        inv_N.append(1/N)
+        N = ((T+1)*(T+2))/2 # # sites, only needed for standard deviation of mean! 
+        T_arr.append(int(T))
 
         mu_mean.append(np.mean(mu_arr))
         mu_stdm.append(np.std(mu_arr, ddof = 1)/(np.sqrt(N)))
@@ -127,40 +118,62 @@ for project in projects:
             chi_abs_arr.append(np.absolute(pop_link_dict[link][3]))
 
         chi_abs_mean.append(np.mean(chi_abs_arr))
-        chi_abs_stdm.append(np.std(chi_abs_arr)/(np.sqrt(N)))
+        chi_abs_stdm.append(np.std(chi_abs_arr, ddof = 1)/(np.sqrt(N)))
 
         fe_di = np.array([lin_fe_di(beta*x) for x in eival])
 
         free_energy_arr.append(free_en_calc(T, beta, kappa, eival, mu_arr, pop_link_dict))
 
-    mu_fit = np.polyfit(inv_N, mu_mean, 1, w = [1/s for s in mu_stdm])
+    inv_T = [1/s for s in T_arr]
 
-    ax[0].errorbar(inv_N, mu_mean, yerr = mu_stdm, fmt='x', label = str(projects[project]))
-    ax[0].plot(fit_range, [fit_fun(x,mu_fit) for x in fit_range], label = f"fit {projects[project]}")
+    even_mask = (np.array(T_arr) % 2 == 0)
+    mu_fit_even = np.polyfit(np.array(inv_T)[even_mask], np.array(mu_mean)[even_mask], 1, w = [1/s for s in np.array(mu_stdm)[even_mask]])
+
+    ax[0].errorbar(np.array(inv_T)[even_mask], np.array(mu_mean)[even_mask], yerr = np.array(mu_stdm)[even_mask], fmt='x', label = str(projects[project]) + "even")
+    ax[0].plot(fit_range, [fit_fun(x,mu_fit_even) for x in fit_range], label = f"fit {projects[project]}" + "even")
     ax[0].hlines(0, 0, x_max, linestyle = "--", color = 'k')
+    mu_title += f" \n {projects[project]} even: {mu_fit_even[len(mu_fit_even)-1] - mu_tl} J"
+
+    odd_mask = np.logical_not(even_mask)
+
+    mu_fit_odd = np.polyfit(np.array(inv_T)[odd_mask], np.array(mu_mean)[odd_mask], 1, w = [1/s for s in np.array(mu_stdm)[odd_mask]])
+
+    ax[0].errorbar(np.array(inv_T)[odd_mask], np.array(mu_mean)[odd_mask], yerr = np.array(mu_stdm)[odd_mask], fmt='x', label = f"{projects[project]}" + "odd")
+    ax[0].plot(fit_range, [fit_fun(x,mu_fit_odd) for x in fit_range], label = f"fit {projects[project]}" + "odd")
+    ax[0].hlines(0, 0, x_max, linestyle = "--", color = 'k')
+    mu_title += f" \n {projects[project]} odd: {mu_fit_odd[-1] - mu_tl} J"
 
 
-    chi_abs_fit = np.polyfit(inv_N, chi_abs_mean, 1, w = [1/s for s in chi_abs_stdm])
+    chi_abs_fit = np.polyfit(inv_T, chi_abs_mean, 1, w = [1/s for s in chi_abs_stdm])
 
-    ax[1].errorbar(inv_N, chi_abs_mean, yerr = chi_abs_stdm, fmt='x', label = str(projects[project]))
+    ax[1].errorbar(inv_T, chi_abs_mean, yerr = chi_abs_stdm, fmt='x', label = str(projects[project]))
     ax[1].plot(fit_range, [fit_fun(x,chi_abs_fit) for x in fit_range], label = f"fit {projects[project]}")
     ax[1].hlines(0.19754, 0, x_max, linestyle = "--", color = 'k')
-    
-    free_energy_fit = np.polyfit(inv_N, free_energy_arr, 1)
+    chi_abs_title += f" \n {projects[project]}: {chi_abs_fit[-1] - chi_abs_tl}"
 
-    ax[2].scatter(inv_N, free_energy_arr, label = str(projects[project]))
+    free_energy_fit = np.polyfit(inv_T, free_energy_arr, 1)
+
+    ax[2].scatter(inv_T, free_energy_arr, label = str(projects[project]))
     ax[2].plot(fit_range, [fit_fun(x,free_energy_fit) for x in fit_range], label = f"fit {projects[project]}")
     ax[2].hlines(-1.2206, 0, x_max, linestyle = "--", color = 'k')
+    free_energy_title =  free_energy_title + f" \n {projects[project]}: {free_energy_fit[-1] - free_energy_tl} J"
 
-
-    ax[0].set_ylabel("$\mu$", fontsize = "x-large")
-    ax[1].set_ylabel("$|\chi|$", fontsize = "x-large")
-    ax[2].set_ylabel("free energy", fontsize = "x-large")
+    ax[0].title.set_text(mu_title)
+    ax[1].title.set_text(chi_abs_title)
+    ax[2].title.set_text(free_energy_title)
     
+    ax[0].set_ylabel("$\mu$ in units of J", fontsize = "x-large")
+    ax[1].set_ylabel("$|\chi|$", fontsize = "x-large")
+    ax[2].set_ylabel("free energy in unts of J", fontsize = "x-large")
+    
+fig.suptitle("finite size extrapolation")
 
 for axes in ax:
+    axes.set_xlabel(r"(linear system size)$^{-1}$")
     axes.set_xlim([0, x_max])
     axes.legend()
+
+
 
 plt.show()
 

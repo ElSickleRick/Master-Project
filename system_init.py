@@ -41,6 +41,8 @@ class system_init:
                 link_dict[x].append(chi[i])
                 i += 1
 
+            mu_arr = self.mu_init(0)
+
         elif chi_init == "up":
             self.chi_pi_phase_init(pop_link_dict, 'up')
             mu_arr = self.mu_init(0)

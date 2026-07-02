@@ -17,13 +17,13 @@ rng = np.random.default_rng(seed)
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 11 # # triangles in base
+T  = 10# # triangles in base
 kappa = 10 # biquadratic exchange constant
-beta = 150 # inverse temperatur
+beta = 200 # inverse temperatur
 
 
 'initialization parameters'
-chi_init = "zero" # variants for initializing chi, for options see below
+chi_init = "real" # variants for initializing chi, for options see below
 
 # options 0/"complex": complex, 1/"real": real, "up": 0/pi-flux phase with pi flux in up-triangles, "down": 0/pi-flux phase with pi flux in down-triangles, "VBS": valence bond solid (only for T=3!)
 
@@ -46,21 +46,19 @@ plaqu_length = 10 # number of plaquettes that are plotted
 
 pre_ana_paras = [mu_length, bond_length, plaqu_length]
 
+
 """
-project_name = "fs_extrapol_pi_half_0107_01"
-target_cond = True
-target = np.pi/2
-
-data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_cond, target)
-
-
-project_name = "fs_extrapol_minus_pi_half_0107_01"
-target_cond = True
-target = -np.pi/2
-
-data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_cond, target)
+project_name = "up_T=40_0207_01"
+data_miner.zero_T_iter(seed, rng, T, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras)
 """
 
+
+project_name = "zero_0207_01"
+target_con = True
+target = 0
+data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target)
+
+"""
 init = system_init(T, kappa, rng)
 link_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
 
@@ -69,10 +67,11 @@ mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hi
 
 post_ana = post_analysis(T ,kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
 post_ana.MF_iter_plot()
-post_ana.real_space_plot()
+post_ana.real_space_plot() 
+post_ana.mu_dist_plot()
 
-
-
+plt.plot(free_en_hist)
+"""
  
 
 plt.show()

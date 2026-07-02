@@ -53,7 +53,7 @@ class methods:
             conv = False
        
         bond_hist_dict_keys = bond_hist_dict.keys()
-
+        """
         for x in pop_link_dict:
 
             s, e, J, Chi_old = pop_link_dict[x]
@@ -67,8 +67,19 @@ class methods:
             if (np.absolute(np.imag(Chi_old - Chi_new))  > chi_dif_bd) or (np.absolute(np.real(Chi_old - Chi_new)) > chi_dif_bd):
 
                 conv = False
+        """
+        chi_arr = []
+        for x in pop_link_dict:
+            s, e, J, chi_old = pop_link_dict[x]
+            chi_arr.append(chi_old)
 
-                
+        chi_mean = np.mean(chi_arr)
+
+        for x in pop_link_dict:
+            alpha = chi_rm_scale*rng.random()
+            pop_link_dict[x][3] = (1-alpha)*pop_link_dict[x][3] +  alpha*chi_mean
+
+
         for i in mu_hist_dict:
             mu_hist_dict[i].append(mu_new[i])
 

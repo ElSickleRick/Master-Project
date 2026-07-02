@@ -148,6 +148,13 @@ class post_analysis:
 
         return(Chi_ph_arr)
 
+    def mu_dist_plot(self):
+        
+        fig, ax = plt.subplots()
+        ax.hist(self.mu_arr)
+
+        return
+
 
     def free_en_calc(self):
         '''
