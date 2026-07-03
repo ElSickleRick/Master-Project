@@ -55,6 +55,10 @@ class system_init:
             self.chi_zero_flux_init(pop_link_dict)
             mu_arr = self.mu_init(-0.67574)
 
+        elif chi_init == "pi":
+            self.chi_pi_fux_init(pop_link_dict)
+            mu_arr = self.mu_init(0.67574)
+
         elif chi_init == "VBS":
             self.chi_VBS_init(pop_link_dict)
             mu_arr = self.mu_init(0)
@@ -225,6 +229,11 @@ class system_init:
 
         for x in link_dict:
             link_dict[x].append(0.164712)
+
+    def chi_pi_fux_init(self, link_dict):
+
+        for x in link_dict:
+            link_dict[x].append(-0.164712)
 
     def chi_VBS_init(self, link_dict):
 

@@ -23,9 +23,9 @@ beta = 200 # inverse temperatur
 
 
 'initialization parameters'
-chi_init = "real" # variants for initializing chi, for options see below
+chi_init = "pi" # variants for initializing chi, for options see below
 
-# options 0/"complex": complex, 1/"real": real, "up": 0/pi-flux phase with pi flux in up-triangles, "down": 0/pi-flux phase with pi flux in down-triangles, "VBS": valence bond solid (only for T=3!)
+# options include 0/"complex": complex, 1/"real": real, "up": 0/pi-flux phase with pi flux in up-triangles, "down": 0/pi-flux phase with pi flux in down-triangles, "zero": zero flux in all plaquettes, "pi": pi flux in all plaquettes, "VBS": valence bond solid (only for T=3!)
 
 'convergence parameters:'
 mu_step_base = 0.3 # mean step size of the chemical potential 
@@ -53,10 +53,11 @@ data_miner.zero_T_iter(seed, rng, T, kappa, project_name, chi_init, iter_paras, 
 """
 
 
-project_name = "zero_0207_01"
+project_name = "pi_0307_01"
 target_con = True
-target = 0
+target = np.pi
 data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target)
+
 
 """
 init = system_init(T, kappa, rng)

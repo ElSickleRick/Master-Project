@@ -58,24 +58,34 @@ path_head = "/home/kuerschner/Documents/Master-Project/data/fs_extrapol"
 
 
 projects = {
-        "down_0207_01": "down",
-        "up_0207_01": "up",
-        "zero_0207_01": "zero"
+        # "down_0207_01": "down",
+        # "up_0207_01": "up",
+         "zero_0307_01": "zero",
+        #"pi_0307_01" : "pi"
             }
+# [mu, chi_abs, free_energy] ;) 
+tl = {
+        "down" : [0, 0.19754, -1.2206],
+        "up" : [0, 0.19754, -1.2206],
+        "zero" : [-0.67574, 0.164712, -0.888302],
+        "pi" : [0.67574, 0.164712, -0.888302],
+        }
+
 
 x_max = 0.06
 fig, ax = plt.subplots(1,3)
 fit_range = np.linspace(0, x_max, 1000)
 
-mu_tl = 0
-chi_abs_tl = 0.19754
-free_energy_tl  = -1.2206
+
 mu_title = chi_abs_title = free_energy_title = f"deviation from analytical value:"
 
 for project in projects:
 
     project_path = os.path.join(path_head, project)
     
+
+    mu_tl, chi_abs_tl, free_energy_tl = tl[projects[project]]
+
     T_arr = []
     mu_mean = []
     mu_stdm = []
@@ -101,11 +111,14 @@ for project in projects:
 
         with open(os.path.join(size_path, "info.pkl"), "rb") as f:
             info = pickle.load(f)
+        
+
 
         T = info["T"]
         kappa = info["kappa"]
         beta = info["beta"]
-        
+
+        print(T, np.mean(eival))        
         N = ((T+1)*(T+2))/2 # # sites, only needed for standard deviation of mean! 
         T_arr.append(int(T))
 
@@ -123,6 +136,10 @@ for project in projects:
         fe_di = np.array([lin_fe_di(beta*x) for x in eival])
 
         free_energy_arr.append(free_en_calc(T, beta, kappa, eival, mu_arr, pop_link_dict))
+        
+        print(eival)
+        print(np.log(1+np.exp(-beta*eival)))
+
 
     inv_T = [1/s for s in T_arr]
 
@@ -131,7 +148,7 @@ for project in projects:
 
     ax[0].errorbar(np.array(inv_T)[even_mask], np.array(mu_mean)[even_mask], yerr = np.array(mu_stdm)[even_mask], fmt='x', label = str(projects[project]) + "even")
     ax[0].plot(fit_range, [fit_fun(x,mu_fit_even) for x in fit_range], label = f"fit {projects[project]}" + "even")
-    ax[0].hlines(0, 0, x_max, linestyle = "--", color = 'k')
+    ax[0].hlines(mu_tl, 0, x_max, linestyle = "--", color = 'k')
     mu_title += f" \n {projects[project]} even: {mu_fit_even[len(mu_fit_even)-1] - mu_tl} J"
 
     odd_mask = np.logical_not(even_mask)
@@ -140,7 +157,6 @@ for project in projects:
 
     ax[0].errorbar(np.array(inv_T)[odd_mask], np.array(mu_mean)[odd_mask], yerr = np.array(mu_stdm)[odd_mask], fmt='x', label = f"{projects[project]}" + "odd")
     ax[0].plot(fit_range, [fit_fun(x,mu_fit_odd) for x in fit_range], label = f"fit {projects[project]}" + "odd")
-    ax[0].hlines(0, 0, x_max, linestyle = "--", color = 'k')
     mu_title += f" \n {projects[project]} odd: {mu_fit_odd[-1] - mu_tl} J"
 
 
@@ -148,14 +164,14 @@ for project in projects:
 
     ax[1].errorbar(inv_T, chi_abs_mean, yerr = chi_abs_stdm, fmt='x', label = str(projects[project]))
     ax[1].plot(fit_range, [fit_fun(x,chi_abs_fit) for x in fit_range], label = f"fit {projects[project]}")
-    ax[1].hlines(0.19754, 0, x_max, linestyle = "--", color = 'k')
+    ax[1].hlines(chi_abs_tl, 0, x_max, linestyle = "--", color = 'k')
     chi_abs_title += f" \n {projects[project]}: {chi_abs_fit[-1] - chi_abs_tl}"
 
     free_energy_fit = np.polyfit(inv_T, free_energy_arr, 1)
 
     ax[2].scatter(inv_T, free_energy_arr, label = str(projects[project]))
     ax[2].plot(fit_range, [fit_fun(x,free_energy_fit) for x in fit_range], label = f"fit {projects[project]}")
-    ax[2].hlines(-1.2206, 0, x_max, linestyle = "--", color = 'k')
+    ax[2].hlines(free_energy_tl, 0, x_max, linestyle = "--", color = 'k')
     free_energy_title =  free_energy_title + f" \n {projects[project]}: {free_energy_fit[-1] - free_energy_tl} J"
 
     ax[0].title.set_text(mu_title)
