@@ -228,12 +228,12 @@ class system_init:
     def chi_zero_flux_init(self, link_dict):
 
         for x in link_dict:
-            link_dict[x].append(0.164712)
+            link_dict[x].append(0.164712 + 0.005*self.rng.random())
 
     def chi_pi_fux_init(self, link_dict):
 
         for x in link_dict:
-            link_dict[x].append(-0.164712)
+            link_dict[x].append(-0.164712 + 0.005*self.rng.random())
 
     def chi_VBS_init(self, link_dict):
 
@@ -281,7 +281,6 @@ class system_init:
         for x in pop_link_dict: 
             a, b, J, chi = pop_link_dict[x] # link a -> b (<=> a<b)
             Ham[a-1, b-1]  = (-J*(1+self.kappa/2)+4*J*self.kappa*(np.absolute(chi))**2)*np.conjugate(chi) # only fills upper triangle
-
 
         return Ham
 

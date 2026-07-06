@@ -53,7 +53,9 @@ class methods:
             conv = False
        
         bond_hist_dict_keys = bond_hist_dict.keys()
+        
         """
+
         for x in pop_link_dict:
 
             s, e, J, Chi_old = pop_link_dict[x]
@@ -68,6 +70,7 @@ class methods:
 
                 conv = False
         """
+
         chi_arr = []
         for x in pop_link_dict:
             s, e, J, chi_old = pop_link_dict[x]
@@ -79,6 +82,7 @@ class methods:
             alpha = chi_rm_scale*rng.random()
             pop_link_dict[x][3] = (1-alpha)*pop_link_dict[x][3] +  alpha*chi_mean
 
+        
 
         for i in mu_hist_dict:
             mu_hist_dict[i].append(mu_new[i])
@@ -165,7 +169,7 @@ class methods:
         return pop_link_dict
 
 
-    def gauge_trafo(self, pop_link_dict):
+    def gauge_trafo(self, rng,  pop_link_dict):
 
 
         local_trafo = [0] # array for saving the local transformations (phase only). 0 is filler since site counting starts at 1. convention: c_i^dagger -> exp(i*phase)*c_i^\dagger
@@ -184,7 +188,7 @@ class methods:
 
         elif trafo == "random":
 
-            local_trafo.extend((np.pi/7)*rng.random(int((self.T+1)*(self.T+2)/2)))
+            local_trafo.extend((np.pi/4)*rng.random(int((self.T+1)*(self.T+2)/2)))
 
 
 

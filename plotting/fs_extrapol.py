@@ -21,6 +21,11 @@ def lin_fe_di(Ebeta):
         return (1/2)*(2-Ebeta)
 
 
+    mu_part = -np.sum(mu_arr)
+
+    return 2*(-(2/beta)*F + mu_part)/((T+1)*(T+2))
+
+
 def free_en_calc(T, beta, kappa, eival, mu_arr, pop_link_dict):
     '''
     calculates the free energy desnsity of a given mean field solution
@@ -31,7 +36,13 @@ def free_en_calc(T, beta, kappa, eival, mu_arr, pop_link_dict):
             free energy  
     '''
 
-    F = -(2/beta)*np.sum(np.log(1+np.exp(-beta*eival)))
+
+    F = 0
+    for x in eival:
+        if x < 0:
+            F += 2*x-(2/beta)*np.log(1+np.exp(beta*x))
+        elif x > 0:
+            F += -(2/beta)*np.log(1+np.exp(-beta*x))
 
     for x in pop_link_dict:
         s, e, J, Chi = pop_link_dict[x]
@@ -40,6 +51,8 @@ def free_en_calc(T, beta, kappa, eival, mu_arr, pop_link_dict):
     mu_part = -np.sum(mu_arr)
 
     return 2*(F + mu_part)/((T+1)*(T+2))
+
+
 
     
 def fit_fun(x, a):
@@ -60,9 +73,14 @@ path_head = "/home/kuerschner/Documents/Master-Project/data/fs_extrapol"
 projects = {
         # "down_0207_01": "down",
         # "up_0207_01": "up",
-         "zero_0307_01": "zero",
-        #"pi_0307_01" : "pi"
-            }
+        "zero_0307_01": "zero", # without randomness
+        "pi_0307_01" : "pi", # without randomness
+        # "zero_0607_03": "zero", # with random part (0.01)   
+        # "pi_0607_02": "pi", # with random part (0.01)
+        # "pi_0607_03": "pi", # with random part (0.005) 
+        }
+
+
 # [mu, chi_abs, free_energy] ;) 
 tl = {
         "down" : [0, 0.19754, -1.2206],
@@ -117,8 +135,7 @@ for project in projects:
         T = info["T"]
         kappa = info["kappa"]
         beta = info["beta"]
-
-        print(T, np.mean(eival))        
+       
         N = ((T+1)*(T+2))/2 # # sites, only needed for standard deviation of mean! 
         T_arr.append(int(T))
 
@@ -136,9 +153,7 @@ for project in projects:
         fe_di = np.array([lin_fe_di(beta*x) for x in eival])
 
         free_energy_arr.append(free_en_calc(T, beta, kappa, eival, mu_arr, pop_link_dict))
-        
-        print(eival)
-        print(np.log(1+np.exp(-beta*eival)))
+
 
 
     inv_T = [1/s for s in T_arr]

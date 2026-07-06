@@ -48,10 +48,14 @@ path_head = "/home/kuerschner/Documents/Master-Project/data/zero_T_extrapol"
 
 
 projects = {
-        "up_T=25_0207_01" : "T=25 (up)",
-        "up_T=30_0207_01" : "T=30 (up)",
-        "up_T=35_0207_01" : "T=35 (up)",
-        "up_T=40_0207_01" : "T=40 (up)"
+        #"up_T=25_0207_01" : "T=25 (up)",
+        #"up_T=30_0207_01" : "T=30 (up)",
+        #"up_T=35_0207_01" : "T=35 (up)",
+        #"up_T=40_0207_01" : "T=40 (up)",
+        # "zero_T=35_0607_01" : "T=35 (zero)",
+        "pi_T=30_0607_01" : "T=30 (pi)",
+        "pi_T=35_0607_01" : "T=35 (pi)",
+        "pi_T=40_0607_01": "T=40 (pi)",
             }
 
 for project in projects: 

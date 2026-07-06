@@ -178,7 +178,17 @@ class post_analysis:
 
         return 2*(F + mu_part )/((self.T+1)*(self.T+2))
  
+    def free_energy_iter_plot(self, free_energy_hist):
 
+        fig, ax = plt.subplots()
+        iterations = np.arange(1, self.sc_iter+1, 1)
+
+        ax.scatter(iterations, free_energy_hist, s = 4)
+        ax.set_title("evolution of 'free energy'")
+        ax.set_ylabel("F in units of J")
+        ax.set_xlabel("iterations")
+        
+        return
 
     def MF_iter_plot(self):
 
