@@ -155,6 +155,9 @@ class post_analysis:
 
         return
 
+    
+
+
 
     def free_en_calc(self):
         '''
@@ -166,7 +169,13 @@ class post_analysis:
                 free energy  
         '''
 
-        F = -(1/self.beta)*np.sum(np.log(1+np.exp(-self.beta*self.eival)))
+
+        F = 0
+        for x in self.eival:
+            if x < 0:
+                F += 2*x-(2/self.beta)*np.log(1+np.exp(self.beta*x))
+            elif x > 0:
+                F += -(2/self.beta)*np.log(1+np.exp(-self.beta*x))
 
         for x in self.pop_link_dict:
             s, e, J, Chi = self.pop_link_dict[x]
@@ -174,9 +183,7 @@ class post_analysis:
 
         mu_part = -np.sum(self.mu_arr)
 
-
-
-        return 2*(F + mu_part )/((self.T+1)*(self.T+2))
+        return 2*(F + mu_part)/((self.T+1)*(self.T+2))
  
     def free_energy_iter_plot(self, free_energy_hist):
 
