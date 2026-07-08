@@ -84,18 +84,21 @@ class data_miner:
                 mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
 
                 post_ana = post_analysis(T, kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict,  mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)                    
+
+                max_iter_cond, sc_iter_max = iter_paras
+
+                if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
+
+                    if target_con == True:
+                        found_target = post_ana.plaqu_dict_check(target)
                 
-
-                if target_con == True:
-                    found_target = post_ana.plaqu_dict_check(target)
-                
-                    if found_target == True:
-                        save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec) 
+                        if found_target == True:
+                            save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec) 
 
 
-                elif target_con == False:
-                    found_target = True
-                    save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec)
+                    elif target_con == False:
+                        found_target = True
+                        save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec)
 
 
     def zero_T_iter(seed, rng, T, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras):
@@ -112,7 +115,11 @@ class data_miner:
             meth = methods(T, beta, kappa)
             mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
 
-            save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec)
+            max_iter_cond, sc_iter_max = iter_paras
+
+            if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
+
+                save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec)
 
 
 
