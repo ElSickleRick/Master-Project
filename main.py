@@ -10,14 +10,14 @@ from methods import methods
 from analysis import pre_analysis, post_analysis
 from data_acquisition import save_data, data_miner
 
-seed = np.random.SeedSequence().entropy # pull rng initialization seed from system entropy
-# seed = 13082203210817060306 # fixed rng initializtaion seed 
+# seed = np.random.SeedSequence().entropy # pull rng initialization seed from system entropy
+seed = 13082203210817060306 # fixed rng initializtaion seed 
 rng = np.random.default_rng(seed)
 
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 40# # triangles in base
+T  = 25 # # triangles in base
 kappa = 10 # biquadratic exchange constant
 beta = 50 # inverse temperatur
 
@@ -25,7 +25,18 @@ beta = 50 # inverse temperatur
 'initialization parameters'
 chi_init = "complex" # variants for initializing chi, for options see below
 
-# options include 0/"complex": complex, 1/"real": real, "up": 0/pi-flux phase with pi flux in up-triangles, "down": 0/pi-flux phase with pi flux in down-triangles, "zero": zero flux in all plaquettes, "pi": pi flux in all plaquettes, "VBS": valence bond solid (only for T=3!)
+"""
+options include 
+0/"complex": random complex, 
+1/"real": random real, 
+"up": 0/pi-flux phase with pi flux in up-triangles, 
+"down": 0/pi-flux phase with pi flux in down-triangles, 
+"zero": zero flux in all plaquettes, 
+"pi": pi flux in all plaquettes, 
+"pi/2": pi/2 flux in every plaquette
+"-pi/2" : -pi/2 flux in every plaquette
+"VBS": valence bond solid (only for T=3!)
+"""
 
 'convergence parameters:'
 mu_step_base = 0.6 # mean step size of the chemical potential 
@@ -53,13 +64,13 @@ data_miner.zero_T_iter(seed, rng, T, kappa, project_name, chi_init, iter_paras, 
 
 """ """ 
 
-chi_init = "complex"
-project_name = "pi_half_0807_01"
+chi_init = "-pi/2"
+project_name = "minus_pi_half_1407_01"
 target_con = True
-target = np.pi/2
+target = -np.pi/2
 data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target)
 
-"""
+"""  
 
 init = system_init(T, kappa, rng)
 link_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
@@ -70,10 +81,11 @@ mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_energ
 post_ana = post_analysis(T ,kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
 post_ana.MF_iter_plot()
 post_ana.real_space_plot() 
-post_ana.mu_dist_plot()
+# post_ana.mu_dist_plot()
 post_ana.free_energy_iter_plot(free_energy_hist)
 
 """ 
+
 pop_link_dict = meth.gauge_trafo(rng, pop_link_dict)
 
 mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_energy_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
@@ -81,8 +93,8 @@ mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_energ
 post_ana = post_analysis(T ,kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
 post_ana.free_energy_iter_plot(free_energy_hist)
 post_ana.real_space_plot() 
-
 """
+
 
 plt.show()
 

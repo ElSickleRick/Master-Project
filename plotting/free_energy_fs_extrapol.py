@@ -73,16 +73,22 @@ path_head = "/home/kuerschner/Documents/Master-Project/data/fs_extrapol"
 
 projects = {
         "down_0207_01": "down",
-        "up_0207_01": "up",
-        "zero_0307_01": "zero",
-        "pi_0307_01" : "pi"
-            }
+        # "up_0207_01": "up",
+        "zero_0307_01": "zero", # without randomness
+        # "pi_0307_01" : "pi", # without randomness
+        # "pi_half_1407_01": "pi/2",
+        "minus_pi_half_1407_01": "-pi/2",
+        }
+
+
 # [mu, chi_abs, free_energy] ;) 
 tl = {
         "down" : [0, 0.19754, -1.2206],
         "up" : [0, 0.19754, -1.2206],
         "zero" : [-0.67574, 0.164712, -0.888302],
         "pi" : [0.67574, 0.164712, -0.888302],
+        "pi/2": [0, 0.200169, -1.24978],
+        "-pi/2": [0, 0.200169, -1.24978],
         }
 
 
@@ -96,7 +102,7 @@ mu_title = chi_abs_title = free_energy_title = f"deviation from analytical value
 for project in projects:
 
     project_path = os.path.join(path_head, project)
-    mu_tl, chi_abs_tl, free_energy_tl = tl[projects[project]   
+    mu_tl, chi_abs_tl, free_energy_tl = tl[projects[project]]   
 
     T_arr = []
     mu_mean = []

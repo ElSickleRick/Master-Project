@@ -71,13 +71,12 @@ path_head = "/home/kuerschner/Documents/Master-Project/data/fs_extrapol"
 
 
 projects = {
-        # "down_0207_01": "down",
+        "down_0207_01": "down",
         # "up_0207_01": "up",
         "zero_0307_01": "zero", # without randomness
-        "pi_0307_01" : "pi", # without randomness
-        # "zero_0607_03": "zero", # with random part (0.01)   
-        # "pi_0607_02": "pi", # with random part (0.01)
-        # "pi_0607_03": "pi", # with random part (0.005) 
+        # "pi_0307_01" : "pi", # without randomness
+        # "pi_half_1407_01": "pi/2",
+        "minus_pi_half_1407_01": "-pi/2",
         }
 
 
@@ -87,6 +86,8 @@ tl = {
         "up" : [0, 0.19754, -1.2206],
         "zero" : [-0.67574, 0.164712, -0.888302],
         "pi" : [0.67574, 0.164712, -0.888302],
+        "pi/2": [0, 0.200169, -1.24978],
+        "-pi/2": [0, 0.200169, -1.24978],
         }
 
 

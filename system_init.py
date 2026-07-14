@@ -56,8 +56,16 @@ class system_init:
             mu_arr = self.mu_init(-0.67574)
 
         elif chi_init == "pi":
-            self.chi_pi_fux_init(pop_link_dict)
+            self.chi_pi_flux_init(pop_link_dict)
             mu_arr = self.mu_init(0.67574)
+
+        elif chi_init == "pi/2":
+            self.chi_pi_half_flux_init(link_dict)
+            mu_arr = self.mu_init(0)
+
+        elif chi_init == "-pi/2":
+            self.chi_minus_pi_half_flux_init(link_dict)
+            mu_arr = self.mu_init(0)
 
         elif chi_init == "VBS":
             self.chi_VBS_init(pop_link_dict)
@@ -194,7 +202,7 @@ class system_init:
         return link_dict
 
 
-    def chi_pi_phase_init(self, link_dict, orient):
+    def chi_pi_flux_init(self, link_dict, orient):
         
         for x in link_dict:
             link_dict[x].append(0.2)
@@ -224,16 +232,76 @@ class system_init:
                     if c != self.T +1:
 
                         link_dict[str(s) + str(s+c)][3] = -0.2 # link s -> bottom right neighbour of s (only exists if not i nlast column)
+
+    def chi_pi_half_flux_init(self, link_dict):
+        
+        chi = 0.200169
+
+        s = int((self.T+1)*(self.T+2)/2) # number of sites
+        c_max = self.T + 1 # maximum column number (see below)
+                
+        for i in range(1, s+1): # loop over every site
+            
+            c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # caclulate column number c of site i
+            s = int(i - (c-1)*c/2) # position of site i in column c 
+
+            if s % 2 == 1: #type a sites (every other site)
+
+                if c != c_max: 
+                    link_dict[str(i) + str(int(i+c+1))].append(-chi) # neighbour above + right 
+                    link_dict[str(i) + str(int(i+c))].append(-1j*chi) # neighbour right 
+
+                if i != int(c*(c+1)/2):
+                    link_dict[str(i) + str(i+1)].append(1*chi) # neighbour above
+
+            elif s % 1 == 0: # type b sites (betweenbetween  every other site)
+
+                if c!= c_max:
+                    link_dict[str(i) + str(int(i+c+1))].append(chi) # neighbour above + right 
+                    link_dict[str(i) + str(int(i+c))].append(1j*chi) # neighbur right 
+
+                if i != int(c*(c+1)/2):
+                    link_dict[str(i) + str(i+1)].append(chi) # neighbour above
+
+    def chi_minus_pi_half_flux_init(self, link_dict):
+        
+        chi = 0.200169
+
+        s = int((self.T+1)*(self.T+2)/2) # number of sites
+        c_max = self.T + 1 # maximum column number (see below)
+                
+        for i in range(1, s+1): # loop over every site
+            
+            c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # caclulate column number c of site i
+            s = int(i - (c-1)*c/2) # position of site i in column c 
+
+            if s % 2 == 1: #type a sites (every other site)
+
+                if c != c_max: 
+                    link_dict[str(i) + str(int(i+c+1))].append(chi) # neighbour above + right 
+                    link_dict[str(i) + str(int(i+c))].append(-1j*chi) # neighbour right 
+
+                if i != int(c*(c+1)/2):
+                    link_dict[str(i) + str(i+1)].append(1*chi) # neighbour above
+
+            elif s % 1 == 0: # type b sites (betweenbetween  every other site)
+
+                if c!= c_max:
+                    link_dict[str(i) + str(int(i+c+1))].append(chi) # neighbour above + right 
+                    link_dict[str(i) + str(int(i+c))].append(1j*chi) # neighbur right 
+
+                if i != int(c*(c+1)/2):
+                    link_dict[str(i) + str(i+1)].append(-chi) # neighbour above
    
     def chi_zero_flux_init(self, link_dict):
 
         for x in link_dict:
-            link_dict[x].append(0.164712 + 0.005*self.rng.random())
+            link_dict[x].append(0.164712)
 
-    def chi_pi_fux_init(self, link_dict):
+    def chi_pi_flux_init(self, link_dict):
 
         for x in link_dict:
-            link_dict[x].append(-0.164712 + 0.005*self.rng.random())
+            link_dict[x].append(-0.164712)
 
     def chi_VBS_init(self, link_dict):
 
@@ -251,7 +319,7 @@ class system_init:
         link_dict['12'][3] = 0.5
         link_dict['36'][3] = 0.5
         link_dict['45'][3] = 0.5
-        link_dict['78'][3] = 0.5
+        link_dict['78'][3]= 0.5
         link_dict['910'][3] = 0.5
 
         
