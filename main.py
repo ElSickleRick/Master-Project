@@ -17,9 +17,13 @@ rng = np.random.default_rng(seed)
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 25 # # triangles in base
+T  = 10 # # triangles in base
 kappa = 10 # biquadratic exchange constant
-beta = 50 # inverse temperatur
+beta = 150 # inverse temperatur
+
+'strain paramters:'
+C = 1 # strain strength
+mag_elas = 0.001 # magneto-elastic coupling 
 
 
 'initialization parameters'
@@ -72,33 +76,31 @@ data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_p
 
 """  
 
-init = system_init(T, kappa, rng)
-link_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
+init = system_init(T, kappa, rng, C, mag_elas)
+link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
 
-meth = methods(T, beta, kappa)
+meth = methods(T, beta, kappa, C, mag_elas)
 mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_energy_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
 
-post_ana = post_analysis(T ,kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
+post_ana = post_analysis(T ,kappa, beta, C, mag_elas, strain_cord_dict, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
 post_ana.MF_iter_plot()
 post_ana.real_space_plot() 
 # post_ana.mu_dist_plot()
 post_ana.free_energy_iter_plot(free_energy_hist)
 
-""" 
+"""
 
-pop_link_dict = meth.gauge_trafo(rng, pop_link_dict)
+pop_link_dict = meth.random_phase_var(rng, pop_link_dict)
 
 mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_energy_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
 
 post_ana = post_analysis(T ,kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
 post_ana.free_energy_iter_plot(free_energy_hist)
 post_ana.real_space_plot() 
+
 """
 
-
 plt.show()
-
-
 
 
 

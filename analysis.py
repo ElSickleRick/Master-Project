@@ -47,11 +47,14 @@ class pre_analysis:
 
 class post_analysis:
 
-    def __init__(self, T ,kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter):
+    def __init__(self, T, kappa, beta, C, mag_elas, strain_cord_dict, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter):
         
         self.T = T
         self.kappa = kappa
         self.beta = beta
+        self.C = C
+        self.mag_elas = mag_elas
+        self.strain_cord_dict = strain_cord_dict
         self.plaqu_dict = plaqu_dict
         self.pop_link_dict = pop_link_dict 
         self.eival = eival
@@ -175,7 +178,7 @@ class post_analysis:
             if x < 0:
                 F += 2*x-(2/self.beta)*np.log(1+np.exp(self.beta*x))
             elif x > 0:
-                F += -(2/self.beta)*np.log(1+np.exp(-self.beta*x))
+                    F += -(2/self.beta)*np.log(1+np.exp(-self.beta*x))
 
         for x in self.pop_link_dict:
             s, e, J, Chi = self.pop_link_dict[x]
@@ -191,6 +194,7 @@ class post_analysis:
         iterations = np.arange(1, self.sc_iter+1, 1)
 
         ax.scatter(iterations, free_energy_hist, s = 4)
+        ax.set_yscale('symlog')
         ax.set_title("evolution of 'free energy'")
         ax.set_ylabel("F in units of J")
         ax.set_xlabel("iterations")
@@ -251,15 +255,25 @@ class post_analysis:
     def real_space_plot(self):
             
         c_max = self.T+1
-        grid = [[-self.T/2,-np.sqrt(3)*self.T/4]] # initialize with one site 
+        grid = np.empty((0,2)) # initialize with one site 
         
         fig, ax = plt.subplots()
+
+        """
 
         for i in np.arange(2, int((self.T+1)*(self.T+2)/2)+1): # site 1 at (0,0) is already included!
             c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # column number c of site i
             p = i - int(c*(c-1)/2)  # position p in column c, counting starts at 0
             cords = [[(c-1)-(p-1)/2 - self.T/2, np.sqrt(3)*(p-1)/2 - np.sqrt(3)*self.T/4]] # calculate coordinates s.t. the origin is in the middle of the triangle
             grid = np.append(grid, cords,  axis = 0)
+            
+        """
+
+        for i in range(1, int((self.T+1)*(self.T+2)/2+1)):
+            
+            cords = np.array([self.strain_cord_dict[i][1]])
+            grid = np.append(grid, cords, axis = 0)
+
                     
         # ax.scatter(grid[:,0], grid[:,1], marker = 'x', c = 'k',  s = 40, zorder=2) 
 

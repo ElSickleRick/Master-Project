@@ -8,7 +8,7 @@ from analysis import pre_analysis, post_analysis
 class methods:
 
 
-    def __init__(self, T, beta, kappa):
+    def __init__(self, T, beta, kappa, C, mag_elas):
         """
         PARAMETERS
         ----------
@@ -23,10 +23,37 @@ class methods:
         self.T = T
         self.beta = beta 
         self.kappa = kappa
+        self.C = C
+        self.mag_elas = mag_elas
         self.N = int((T+1)*(T+2)/2) # # sites
     
         return
 
+    def free_en_calc(self, eival, mu_arr, pop_link_dict):
+        '''
+        calculates the free energy desnsity of a given mean field solution
+
+        Returns:
+        --------
+        free_en: float 
+                free energy  
+        '''
+
+
+        F = 0
+        for x in eival:
+            if x < 0:
+                F += 2*x-(2/self.beta)*np.log(1+np.exp(self.beta*x))
+            elif x > 0:
+                    F += -(2/self.beta)*np.log(1+np.exp(-self.beta*x))
+
+        for x in pop_link_dict:
+            s, e, J, Chi = pop_link_dict[x]
+            F += 2*(J*(1+self.kappa/2)- 6*J*self.kappa*(np.absolute(Chi)**2))*(np.absolute(Chi)**2) 
+
+        mu_part = -np.sum(mu_arr)
+
+        return 2*(F + mu_part)/((self.T+1)*(self.T+2))
 
     def lin_fe_di(self, E):
 
@@ -181,7 +208,7 @@ class methods:
     
             conv = True
             
-            init = system_init(self.T, self.kappa, rng)
+            init = system_init(self.T, self.kappa, rng, self.C, self.mag_elas)
             Ham = init.Ham_builder(pop_link_dict, mu_arr) # build Hamiltonian
             eival, eivec = la.eigh(Ham, lower = False) # daigonalize Hamiltonian, entries are in upper traingle! 
 
@@ -213,8 +240,7 @@ class methods:
         
                 plaqu_hist_dict[p][2].append([phase]) 
 
-            post_ana = post_analysis(self.T, self.kappa, self.beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict,  mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
-            f = post_ana.free_en_calc() # calculate "free energy" of current configuration
+            f = self.free_en_calc(eival, mu_arr, pop_link_dict) # calculate "free energy" of cinfiguration
             free_en_hist.append([f])
 
             if sc_iter >= sc_iter_max and max_iter_cond == True: # (conditional) premature temrination of algorithm 
@@ -242,7 +268,7 @@ class methods:
 
         for x in pop_link_dict:
 
-            pop_link_dict[x][3] *= np.exp(1j*np.pi*0.001*(rng.random()*2 - 1))
+            pop_link_dict[x][3] *= np.exp(1j*np.pi*0.1*(rng.random()*2 - 1))
 
         return pop_link_dict
 

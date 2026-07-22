@@ -4,11 +4,13 @@ import time
 
 class system_init:
 
-    def __init__(self,T, kappa, rng): 
+    def __init__(self,T, kappa, rng, C, mag_elas): 
 
         self.T = T
         self.kappa = kappa
         self.rng = rng
+        self.C = C
+        self.mag_elas = mag_elas
 
         return
     
@@ -19,7 +21,8 @@ class system_init:
         
         link_dict = self.link_dict_gen()
         plaqu_dict = self.plaqu_dict_gen()
-        pop_link_dict = self.J_init(link_dict) # link dict containing the values for J and Chi on each bond
+        strain_cord_dict = self.strain_cord_gen()
+        pop_link_dict = self.strain_calc(strain_cord_dict, link_dict)
 
         if chi_init == "complex" or chi_init == 0:
             chi = 1*self.rng.random(int(3*self.T*(self.T+1)/2)) + 1j*self.rng.random(int(3*self.T*(self.T+1)/2)) # complex initialization
@@ -44,11 +47,11 @@ class system_init:
             mu_arr = self.mu_init(0)
 
         elif chi_init == "up":
-            self.chi_pi_phase_init(pop_link_dict, 'up')
+            self.chi_dqsl_init(pop_link_dict, 'up')
             mu_arr = self.mu_init(0)
 
         elif chi_init == "down":
-            self.chi_pi_phase_init(pop_link_dict, 'down')
+            self.chi_dqsl_init(pop_link_dict, 'down')
             mu_arr = self.mu_init(0)
 
         elif chi_init == "zero":
@@ -93,7 +96,7 @@ class system_init:
 
                         link_dict[str(s) + str(s+c)][3] = - 1/(2*np.sqrt(6)*np.exp(1j*0.0000000001)) # link s -> bottom right neighbour of s (only exists if not i nlast column)
 
-        return link_dict, plaqu_dict, mu_arr, pop_link_dict
+        return link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict
 
 
     def link_dict_gen(self):
@@ -139,7 +142,7 @@ class system_init:
         Returns
         -------
         plaqu_dict: dictionary
-                    the entries are two-component arrays, the first entrie being the orientation of the triangle (either "up" or "down"), the second entire is anarray of length 3 containing the indices of all points of the plaquette in ascending order  
+                    the entries are two-component arrays, the first entrie being the orientation of the triangle (either "up" or "down"), the second ent        ry is an array of length 3 containing the indices of all points of the plaquette in ascending order  
 
         """
 
@@ -165,6 +168,59 @@ class system_init:
 
         return plaqu_dict
 
+
+    def strain_cord_gen(self):
+        
+        s = int((self.T+1)*(self.T+2)/2) # # sites
+        c_max = self.T # maximum column number (column counting starts at 0 here!!)
+
+        theta = np.pi
+        
+        str_cord_dict = {}
+
+        for i in range(1, s+1):
+
+            c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))-1) # caclulate column number c
+            p = int(i-c*(c+1)/2-1) # calculate position p inside column c 
+            
+            # calculate the unstrained position of atom i:
+            x = c - p/2 - self.T/2
+            y = np.sqrt(3)*(p - self.T/2)/2
+
+            # calculate rotated coordinates
+            x_rot = (np.cos(theta)*x - np.sqrt(3)*np.sin(theta)*y)/2
+            y_rot = (np.sqrt(3)*np.sin(theta)*x + np.cos(theta)*y)/2    
+
+            # calcualte strained postions of atom i:
+            x_str = x_rot + 2*self.C*x_rot*y_rot
+            y_str = y_rot + self.C*(x_rot**2 - y_rot**2)
+
+            str_cord_dict.update({i : [[x,y], [x_str, y_str]]})
+
+        return(str_cord_dict)
+
+    def strain_calc(self, str_cord_dict, link_dict):
+
+        for i in link_dict:
+
+            s, e = link_dict[i]
+
+            bond_len = np.linalg.norm( np.array(str_cord_dict[s][1]) - np.array(str_cord_dict[e][1]) ) # length of strained bond
+            print(bond_len)
+            J = (1-self.mag_elas*(bond_len - 1))
+            print(J)
+
+
+            if J > 0:
+
+                link_dict[i].append(J) 
+            else:
+
+                print("error; strain produces ferromagnetic couplings; programm stopped")
+                quit() 
+
+        return link_dict
+            
 
     def mu_init(self, mu):
 
@@ -202,7 +258,7 @@ class system_init:
         return link_dict
 
 
-    def chi_pi_flux_init(self, link_dict, orient):
+    def chi_dqsl_init(self, link_dict, orient):
         
         for x in link_dict:
             link_dict[x].append(0.2)
