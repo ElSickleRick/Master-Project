@@ -10,7 +10,7 @@ from system_init import system_init
 from methods import methods
 from analysis import pre_analysis, post_analysis
 
-def save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec): 
+def save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, pop_link_dict, mu_arr, eival, eivec): 
     path_head = "/home/kuerschner/Documents/Master-Project/data"
 
     save_path = os.path.join(path_head, path_sub)
@@ -27,7 +27,9 @@ def save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, e
         info = {
                 'T': T,
                 'kappa': kappa,
-                'beta': beta
+                'beta': beta,
+                'C' : C,
+                'mag_elas' : mag_elas, 
                 }
 
         miscellaneous = {
@@ -104,6 +106,27 @@ class data_miner:
     def zero_T_iter(seed, rng, T, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras):
 
         for beta in [10, 20, 30, 50, 100, 150, 200, 250, 300]:
+
+            print(rf"now doing $\beta$=", beta)
+
+            path_sub = os.path.join("zero_T_extrapol", project_name, f"beta = {beta}")
+
+            init = system_init(T, kappa, rng) 
+            link_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
+
+            meth = methods(T, beta, kappa)
+            mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
+
+            max_iter_cond, sc_iter_max = iter_paras
+
+            if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
+
+                save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec)
+
+
+    def strain_iter(seed, rng, T, kappa, beta, mag_elas, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras):
+
+        for C in [0, 0.05, ]:
 
             print(rf"now doing $\beta$=", beta)
 

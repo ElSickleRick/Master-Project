@@ -47,7 +47,7 @@ class pre_analysis:
 
 class post_analysis:
 
-    def __init__(self, T, kappa, beta, C, mag_elas, strain_cord_dict, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter):
+    def __init__(self, T, kappa, beta, C, mag_elas, strain_cord_dict, plaqu_dict, pop_link_dict, eival, eivec, mu_arr):
         
         self.T = T
         self.kappa = kappa
@@ -59,12 +59,7 @@ class post_analysis:
         self.pop_link_dict = pop_link_dict 
         self.eival = eival
         self.eivec = eivec
-        self.mu_hist_dict = mu_hist_dict
         self.mu_arr = mu_arr
-        self.bond_hist_dict = bond_hist_dict
-        self.plaqu_hist_dict = plaqu_hist_dict
-        self.sc_iter = sc_iter
-
         return
 
     def plaqu_dict_check(self, target):
@@ -188,10 +183,10 @@ class post_analysis:
 
         return 2*(F + mu_part)/((self.T+1)*(self.T+2))
  
-    def free_energy_iter_plot(self, free_energy_hist):
+    def free_energy_iter_plot(self, sc_iter, free_energy_hist):
 
         fig, ax = plt.subplots()
-        iterations = np.arange(1, self.sc_iter+1, 1)
+        iterations = np.arange(1, sc_iter+1, 1)
 
         ax.scatter(iterations, free_energy_hist, s = 4)
         ax.set_yscale('symlog')
@@ -203,13 +198,13 @@ class post_analysis:
         
         return
 
-    def MF_iter_plot(self):
+    def MF_iter_plot(self, sc_iter, mu_hist_dict, bond_hist_dict, plaqu_hist_dict):
 
         fig, ax = plt.subplots(2,2)
-        iterations = np.arange(1, self.sc_iter+1, 1)
+        iterations = np.arange(1, sc_iter+1, 1)
 
-        for x in self.bond_hist_dict:
-            hist = self.bond_hist_dict[x]
+        for x in bond_hist_dict:
+            hist = bond_hist_dict[x]
             s = hist[0] 
             e = hist[1]
             history = hist[2:]
@@ -218,12 +213,12 @@ class post_analysis:
             ax[0][0].scatter(iterations, np.absolute(history), s = 4, label=f"bond {s} -> {e}")
             ax[0][1].scatter(iterations, np.angle(history), s = 4, label=f"bond {s} -> {e}")
         
-        for x in self.mu_hist_dict:
-            mu_hist = self.mu_hist_dict[x]
+        for x in mu_hist_dict:
+            mu_hist = mu_hist_dict[x]
             ax[1][0].scatter(iterations, mu_hist, s = 4, label=f"site {x+1}")
 
-        for p in self.plaqu_hist_dict:
-            orientation, corners, hist = self.plaqu_hist_dict[p]
+        for p in plaqu_hist_dict:
+            orientation, corners, hist = plaqu_hist_dict[p]
 
             ax[1][1].scatter(iterations, hist, s = 4, label=f"plaquette {corners} ({orientation})") 
 
@@ -255,21 +250,13 @@ class post_analysis:
             axes.grid()  
 
     def real_space_plot(self):
-            
+        
+        variant = "t" # if "chi" -> abs(chi) ist plotted, if "t" -> hopping amplitude is plotted 
+
         c_max = self.T+1
         grid = np.empty((0,2)) # initialize with one site 
         
         fig, ax = plt.subplots()
-
-        """
-
-        for i in np.arange(2, int((self.T+1)*(self.T+2)/2)+1): # site 1 at (0,0) is already included!
-            c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # column number c of site i
-            p = i - int(c*(c-1)/2)  # position p in column c, counting starts at 0
-            cords = [[(c-1)-(p-1)/2 - self.T/2, np.sqrt(3)*(p-1)/2 - np.sqrt(3)*self.T/4]] # calculate coordinates s.t. the origin is in the middle of the triangle
-            grid = np.append(grid, cords,  axis = 0)
-            
-        """
 
         for i in range(1, int((self.T+1)*(self.T+2)/2+1)):
             
@@ -282,7 +269,9 @@ class post_analysis:
         for link in self.pop_link_dict:
             
             lw_min = 0
-            lw_max = 8
+            lw_max = 12
+            t_min = 0
+            t_max = 5
             chi_abs_min = 0
             chi_abs_max = 0.5
 
@@ -296,7 +285,14 @@ class post_analysis:
                 ax.plot(x, y, c = 'grey', linestyle = 'dotted', zorder = 3)
             
             else:
-                lw = (lw_max - lw_min)/(chi_abs_max - chi_abs_min)*(np.absolute(chi)-chi_abs_min) + lw_min      
+                if variant == "chi":
+                    lw = (lw_max - lw_min)/(chi_abs_max - chi_abs_min)*(np.absolute(chi)-chi_abs_min) + lw_min
+
+                elif variant == "t":
+                    if J*np.absolute(chi)*(1+self.kappa/2-4*self.kappa*np.absolute(chi)**2) > t_max:
+                            print("warning: upper t-bound for line thicknes too small")
+                    lw = (lw_max - lw_min)/(t_max - t_min)*(J*np.absolute(chi)*(1+self.kappa/2-4*self.kappa*np.absolute(chi)**2-t_min)) + lw_min
+
                 ax.plot(x, y, c = 'k', linewidth = lw, zorder = 3)
         
         cmap = clr.LinearSegmentedColormap.from_list("periodic", ["purple", "blue", "white",  "red", "purple"])
@@ -324,7 +320,7 @@ class post_analysis:
             triangle = ptch.Polygon([grid[int(corners[0]-1)], grid[int(corners[1]-1)], grid[int(corners[2]-1)]], color = color, zorder = 1)
             ax.add_patch(triangle)
 
-        ax.scatter(0, 0, s = 4, c = 'r', zorder = 3)
+        ax.scatter(0, 0, s = 8, c = 'w', marker = "+", zorder = 3) # mark center
         sm = cm.ScalarMappable(norm = norm, cmap = cmap)
         sm.set_array([])
         cbar = plt.colorbar(sm, ax = ax) 

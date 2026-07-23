@@ -174,7 +174,7 @@ class system_init:
         s = int((self.T+1)*(self.T+2)/2) # # sites
         c_max = self.T # maximum column number (column counting starts at 0 here!!)
 
-        theta = np.pi/2
+        theta = 0
         
         str_cord_dict = {}
 
@@ -187,9 +187,9 @@ class system_init:
             x = c - p/2 - self.T/2
             y = np.sqrt(3)*p/2 - self.T/(2*np.sqrt(3))
 
-            # calcualte strained postions of atom i:
-            x_str = x + self.C*((x**2-y**2)*np.sin(2*theta) + 2*x*y*np.cos(2*theta))
-            y_str = y + self.C*((x**2-y**2)*np.cos(2*theta) - 2*x*y*np.sin(2*theta))
+            # calcualte strained postions of atom i (the strain strength gets scaled with the linear system size):
+            x_str = x + self.C*((x**2-y**2)*np.sin(2*theta) + 2*x*y*np.cos(2*theta))/self.T
+            y_str = y + self.C*((x**2-y**2)*np.cos(2*theta) - 2*x*y*np.sin(2*theta))/self.T
 
             str_cord_dict.update({i : [[x,y], [x_str, y_str]]})
 
