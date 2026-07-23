@@ -198,6 +198,8 @@ class post_analysis:
         ax.set_title("evolution of 'free energy'")
         ax.set_ylabel("F in units of J")
         ax.set_xlabel("iterations")
+
+        print('free energy: ', free_energy_hist[-1], 'J')
         
         return
 
@@ -322,11 +324,13 @@ class post_analysis:
             triangle = ptch.Polygon([grid[int(corners[0]-1)], grid[int(corners[1]-1)], grid[int(corners[2]-1)]], color = color, zorder = 1)
             ax.add_patch(triangle)
 
+        ax.scatter(0, 0, s = 4, c = 'r', zorder = 3)
         sm = cm.ScalarMappable(norm = norm, cmap = cmap)
         sm.set_array([])
         cbar = plt.colorbar(sm, ax = ax) 
         cbar.set_ticks([-np.pi, -np.pi/2, 0, np.pi/2, np.pi])
         cbar.set_ticklabels([f"$-\pi$", f"$-\pi / 2$", "0", f"$\pi / 2$", f"$\pi$"])
+        ax.grid()
 
     def DOS_hist(self): 
         

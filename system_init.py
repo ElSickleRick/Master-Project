@@ -174,7 +174,7 @@ class system_init:
         s = int((self.T+1)*(self.T+2)/2) # # sites
         c_max = self.T # maximum column number (column counting starts at 0 here!!)
 
-        theta = np.pi
+        theta = np.pi/2
         
         str_cord_dict = {}
 
@@ -185,19 +185,16 @@ class system_init:
             
             # calculate the unstrained position of atom i:
             x = c - p/2 - self.T/2
-            y = np.sqrt(3)*(p - self.T/2)/2
-
-            # calculate rotated coordinates
-            x_rot = (np.cos(theta)*x - np.sqrt(3)*np.sin(theta)*y)/2
-            y_rot = (np.sqrt(3)*np.sin(theta)*x + np.cos(theta)*y)/2    
+            y = np.sqrt(3)*p/2 - self.T/(2*np.sqrt(3))
 
             # calcualte strained postions of atom i:
-            x_str = x_rot + 2*self.C*x_rot*y_rot
-            y_str = y_rot + self.C*(x_rot**2 - y_rot**2)
+            x_str = x + self.C*((x**2-y**2)*np.sin(2*theta) + 2*x*y*np.cos(2*theta))
+            y_str = y + self.C*((x**2-y**2)*np.cos(2*theta) - 2*x*y*np.sin(2*theta))
 
             str_cord_dict.update({i : [[x,y], [x_str, y_str]]})
 
         return(str_cord_dict)
+
 
     def strain_calc(self, str_cord_dict, link_dict):
 
@@ -206,9 +203,7 @@ class system_init:
             s, e = link_dict[i]
 
             bond_len = np.linalg.norm( np.array(str_cord_dict[s][1]) - np.array(str_cord_dict[e][1]) ) # length of strained bond
-            print(bond_len)
             J = (1-self.mag_elas*(bond_len - 1))
-            print(J)
 
 
             if J > 0:
@@ -238,24 +233,6 @@ class system_init:
 
         return mu_arr
 
-
-    def J_init(self, link_dict):
-
-        '''
-        Placeholder: inserts J's (uniform, equal to 1) into the link dictionary 
-
-        '''
-
-        J = np.ones(int(3*self.T*(self.T+1)/2))
-        # J = 1.75*self.rng.random(int(3*self.T*(self.T+1)/2)) + 0.25
-        i = 0
-    
-        
-        for x in link_dict:
-            link_dict[x].append(J[i])
-            i += 1
-
-        return link_dict
 
 
     def chi_dqsl_init(self, link_dict, orient):

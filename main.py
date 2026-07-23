@@ -10,24 +10,24 @@ from methods import methods
 from analysis import pre_analysis, post_analysis
 from data_acquisition import save_data, data_miner
 
-# seed = np.random.SeedSequence().entropy # pull rng initialization seed from system entropy
-seed = 13082203210817060306 # fixed rng initializtaion seed 
+seed = np.random.SeedSequence().entropy # pull rng initialization seed from system entropy
+# seed = 13082203210817060306 # fixed rng initializtaion seed 
 rng = np.random.default_rng(seed)
 
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 10 # # triangles in base
+T  = 15 # # triangles in base
 kappa = 10 # biquadratic exchange constant
-beta = 150 # inverse temperatur
+beta = 100 # inverse temperatur
 
 'strain paramters:'
-C = 1 # strain strength
-mag_elas = 0.001 # magneto-elastic coupling 
+C = 0.04 # strain strength
+mag_elas = 1.5 # magneto-elastic coupling 
 
 
 'initialization parameters'
-chi_init = "complex" # variants for initializing chi, for options see below
+chi_init = "-pi/2" # variants for initializing chi, for options see below
 
 """
 options include 
@@ -85,7 +85,7 @@ mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_energ
 post_ana = post_analysis(T ,kappa, beta, C, mag_elas, strain_cord_dict, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
 post_ana.MF_iter_plot()
 post_ana.real_space_plot() 
-# post_ana.mu_dist_plot()
+post_ana.DOS_hist()
 post_ana.free_energy_iter_plot(free_energy_hist)
 
 """
