@@ -17,17 +17,17 @@ rng = np.random.default_rng(seed)
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 15 # # triangles in base
+T  = 45 # # triangles in base
 kappa = 10 # biquadratic exchange constant
 beta = 100 # inverse temperatur
 
 'strain paramters:'
-C = 0.625 # strain strength x linear sytem size 
-mag_elas = 1.5 # magneto-elastic coupling 
-
+C = 0.3 # strain strength x linear sytem size 
+mag_elas = 1.5 # magneto-elastic coupling
+theta = np.pi/2 # rotation angle of the strain pattern
 
 'initialization parameters'
-chi_init = "complex" # variants for initializing chi, for options see below
+chi_init = "pi/2" # variants for initializing chi, for options see below
 
 """
 options include 
@@ -62,11 +62,11 @@ plaqu_length = 10 # number of plaquettes that are plotted
 pre_ana_paras = [mu_length, bond_length, plaqu_length]
 
 """
-T  = 30
+
 project_name = "pi_T=30_0607_01"
 data_miner.zero_T_iter(seed, rng, T, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras)
 
-""" """ 
+""" """  
 
 chi_init = "-pi/2"
 project_name = "minus_pi_half_1407_01"
@@ -74,9 +74,9 @@ target_con = True
 target = -np.pi/2
 data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target)
 
-"""  
+""" """
 
-init = system_init(T, kappa, rng, C, mag_elas)
+init = system_init(T, kappa, rng, C, mag_elas, theta)
 link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
 
 meth = methods(T, beta, kappa, C, mag_elas)
@@ -89,22 +89,15 @@ post_ana.DOS_hist()
 post_ana.free_energy_iter_plot(sc_iter, free_energy_hist)
 
 
-"""
+""" 
 
-pop_link_dict = meth.random_phase_var(rng, pop_link_dict)
+project_name  = "T=45_rot_2707_01"
+target_con = True
+target = np.pi/2
+data_miner.cond_strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target)
 
-mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_energy_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
-
-post_ana = post_analysis(T ,kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict, mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)
-post_ana.free_energy_iter_plot(free_energy_hist)
-post_ana.real_space_plot() 
-
-"""
 
 plt.show()
-
-
-
 
 
 

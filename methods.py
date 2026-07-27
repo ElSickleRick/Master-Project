@@ -29,6 +29,35 @@ class methods:
     
         return
 
+    def Ham_builder(self, pop_link_dict, mu_arr):
+
+        '''
+        builds the Hamiltonian
+
+        Parameters
+        ---------
+        pop_link_dict: dictionary
+                dictionary of all links in the system
+                -> values are [a,b,c,d] with a->b the sites connected by the link and c,d chi and J (order arbitrary)
+        mu_arr: array 
+                array of mus (chemical potentials)
+                length: (T+1)(T+2)/2
+
+        Returns
+        ------
+        Ham: array 
+                upper triangle of the Hamiltonian
+        '''
+
+        Ham = np.zeros((int((self.T+1)*(self.T+2)/2), int((self.T+1)*(self.T+2)/2)), dtype = np.complex128)
+        np.fill_diagonal(Ham, mu_arr)
+
+        for x in pop_link_dict: 
+            a, b, J, chi = pop_link_dict[x] # link a -> b (<=> a<b)
+            Ham[a-1, b-1]  = (-J*(1+self.kappa/2)+4*J*self.kappa*(np.absolute(chi))**2)*np.conjugate(chi) # only fills upper triangle
+
+        return Ham
+
     def free_en_calc(self, eival, mu_arr, pop_link_dict):
         '''
         calculates the free energy desnsity of a given mean field solution
@@ -208,8 +237,7 @@ class methods:
     
             conv = True
             
-            init = system_init(self.T, self.kappa, rng, self.C, self.mag_elas)
-            Ham = init.Ham_builder(pop_link_dict, mu_arr) # build Hamiltonian
+            Ham = self.Ham_builder(pop_link_dict, mu_arr) # build Hamiltonian
             eival, eivec = la.eigh(Ham, lower = False) # daigonalize Hamiltonian, entries are in upper traingle! 
 
             mu_arr, conv  = self.MF_update(rng, convergence_paras, eival, eivec, pop_link_dict, mu_arr) # update chem potentials and bond paras 

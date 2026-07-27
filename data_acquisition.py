@@ -10,7 +10,7 @@ from system_init import system_init
 from methods import methods
 from analysis import pre_analysis, post_analysis
 
-def save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, pop_link_dict, mu_arr, eival, eivec): 
+def save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec): 
     path_head = "/home/kuerschner/Documents/Master-Project/data"
 
     save_path = os.path.join(path_head, path_sub)
@@ -29,12 +29,13 @@ def save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, pop_link_di
                 'kappa': kappa,
                 'beta': beta,
                 'C' : C,
-                'mag_elas' : mag_elas, 
+                'mag_elas' : mag_elas,
+                'theta' : theta,
                 }
 
         miscellaneous = {
                 'seed' : seed,
-                'chi_init': chi_init
+                'chi_init': chi_init,
                 }
 
 
@@ -65,7 +66,7 @@ class data_miner:
     def __init__(self):
         return
 
-    def cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target):
+    def cond_size_iter(seed, rng, beta, kappa, C, mag_elas, theta, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target):
 
         for T in [25, 30, 35, 40, 45, 50, 55]:
                 
@@ -79,10 +80,10 @@ class data_miner:
 
                 path_sub = os.path.join("fs_extrapol", project_name, f"T={T}")
 
-                init = system_init(T, kappa, rng) 
-                link_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
+                init = system_init(T, kappa, rng, C, mag_elas, theta) 
+                link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
 
-                meth = methods(T, beta, kappa)
+                meth = methods(T, beta, kappa, C, mag_elas)
                 mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
 
                 post_ana = post_analysis(T, kappa, beta, plaqu_dict, pop_link_dict, eival, eivec, mu_hist_dict,  mu_arr, bond_hist_dict, plaqu_hist_dict, sc_iter)                    
@@ -95,15 +96,15 @@ class data_miner:
                         found_target = post_ana.plaqu_dict_check(target)
                 
                         if found_target == True:
-                            save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec) 
+                            save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec) 
 
 
                     elif target_con == False:
                         found_target = True
-                        save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec)
+                        save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
 
 
-    def zero_T_iter(seed, rng, T, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras):
+    def zero_T_iter(seed, rng, T, kappa, C, mag_elas, theta, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras):
 
         for beta in [10, 20, 30, 50, 100, 150, 200, 250, 300]:
 
@@ -111,38 +112,55 @@ class data_miner:
 
             path_sub = os.path.join("zero_T_extrapol", project_name, f"beta = {beta}")
 
-            init = system_init(T, kappa, rng) 
-            link_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
+            init = system_init(T, kappa, rng, C, mag_elas, theta) 
+            link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
 
-            meth = methods(T, beta, kappa)
+            meth = methods(T, beta, kappam, C, mag_elas)
             mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
 
             max_iter_cond, sc_iter_max = iter_paras
 
             if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
 
-                save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec)
+                save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
 
 
-    def strain_iter(seed, rng, T, kappa, beta, mag_elas, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras):
+    def cond_strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target):
 
-        for C in [0, 0.05, ]:
+        for C in [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6]:
+            
+            i = 1
+            found_target = False
 
-            print(rf"now doing $\beta$=", beta)
+            while found_target == False:
 
-            path_sub = os.path.join("zero_T_extrapol", project_name, f"beta = {beta}")
+                print("now doing C=", C, " run number:", i)
+                i += 1
 
-            init = system_init(T, kappa, rng) 
-            link_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
+                path_sub = os.path.join("strain_var", project_name, f"C = {C}")
 
-            meth = methods(T, beta, kappa)
-            mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
+                init = system_init(T, kappa, rng, C, mag_elas, theta) 
+                link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
 
-            max_iter_cond, sc_iter_max = iter_paras
+                meth = methods(T, beta, kappa, C, mag_elas)
+                mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
 
-            if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
+                max_iter_cond, sc_iter_max = iter_paras
 
-                save_data(path_sub, seed, chi_init, T, kappa, beta, pop_link_dict, mu_arr, eival, eivec)
+                post_ana = post_analysis(T, kappa, beta, C, mag_elas, strain_cord_dict, plaqu_dict, pop_link_dict, eival, eivec, mu_arr) 
+                if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
+                    
+                    if target_con == True:
+                        found_target = post_ana.plaqu_dict_check(target)
+                        
+                        if found_target == True:
+                                save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
+
+
+                    elif target_con == False:
+                        found_target == True
+                        save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
+
 
 
 

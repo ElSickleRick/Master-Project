@@ -251,7 +251,14 @@ class post_analysis:
 
     def real_space_plot(self):
         
-        variant = "t" # if "chi" -> abs(chi) ist plotted, if "t" -> hopping amplitude is plotted 
+        variant = "t" # if "chi" -> abs(chi) ist plotted, if "t" -> hopping amplitude is plotted
+
+        lw_min = 0
+        lw_max = 12
+        t_min = 0
+        t_max = 5
+        chi_abs_min = 0
+        chi_abs_max = 0.5
 
         c_max = self.T+1
         grid = np.empty((0,2)) # initialize with one site 
@@ -267,13 +274,6 @@ class post_analysis:
         # ax.scatter(grid[:,0], grid[:,1], marker = 'x', c = 'k',  s = 40, zorder=2) 
 
         for link in self.pop_link_dict:
-            
-            lw_min = 0
-            lw_max = 12
-            t_min = 0
-            t_max = 5
-            chi_abs_min = 0
-            chi_abs_max = 0.5
 
             s, e, J, chi = self.pop_link_dict[link]
 

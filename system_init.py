@@ -4,13 +4,14 @@ import time
 
 class system_init:
 
-    def __init__(self,T, kappa, rng, C, mag_elas): 
+    def __init__(self,T, kappa, rng, C, mag_elas, theta): 
 
         self.T = T
         self.kappa = kappa
         self.rng = rng
         self.C = C
         self.mag_elas = mag_elas
+        self.theta = theta
 
         return
     
@@ -173,9 +174,7 @@ class system_init:
         
         s = int((self.T+1)*(self.T+2)/2) # # sites
         c_max = self.T # maximum column number (column counting starts at 0 here!!)
-
-        theta = 0
-        
+ 
         str_cord_dict = {}
 
         for i in range(1, s+1):
@@ -188,8 +187,8 @@ class system_init:
             y = np.sqrt(3)*p/2 - self.T/(2*np.sqrt(3))
 
             # calcualte strained postions of atom i (the strain strength gets scaled with the linear system size):
-            x_str = x + self.C*((x**2-y**2)*np.sin(2*theta) + 2*x*y*np.cos(2*theta))/self.T
-            y_str = y + self.C*((x**2-y**2)*np.cos(2*theta) - 2*x*y*np.sin(2*theta))/self.T
+            x_str = x + self.C*((x**2-y**2)*np.sin(2*self.theta) + 2*x*y*np.cos(2*self.theta))/self.T
+            y_str = y + self.C*((x**2-y**2)*np.cos(2*self.theta) - 2*x*y*np.sin(2*self.theta))/self.T
 
             str_cord_dict.update({i : [[x,y], [x_str, y_str]]})
 
@@ -356,34 +355,7 @@ class system_init:
         link_dict['910'][3] = 0.5
 
         
-    def Ham_builder(self, pop_link_dict, mu_arr):
 
-        '''
-        builds the Hamiltonian
-
-        Parameters
-        ---------
-        pop_link_dict: dictionary
-                dictionary of all links in the system
-                -> values are [a,b,c,d] with a->b the sites connected by the link and c,d chi and J (order arbitrary)
-        mu_arr: array 
-                array of mus (chemical potentials)
-                length: (T+1)(T+2)/2
-
-        Returns
-        ------
-        Ham: array 
-                upper triangle of the Hamiltonian
-        '''
-
-        Ham = np.zeros((int((self.T+1)*(self.T+2)/2), int((self.T+1)*(self.T+2)/2)), dtype = np.complex128)
-        np.fill_diagonal(Ham, mu_arr)
-
-        for x in pop_link_dict: 
-            a, b, J, chi = pop_link_dict[x] # link a -> b (<=> a<b)
-            Ham[a-1, b-1]  = (-J*(1+self.kappa/2)+4*J*self.kappa*(np.absolute(chi))**2)*np.conjugate(chi) # only fills upper triangle
-
-        return Ham
 
 
 
