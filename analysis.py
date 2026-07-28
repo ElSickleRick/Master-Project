@@ -105,7 +105,33 @@ class post_analysis:
                 break 
 
         return target_con 
-    
+
+    def edge_projection(self):
+
+        """
+        returns AVS of projection of eigenvectors onto edge of sample
+        
+        OUTPUTS:
+        -------
+        projection: 1D array (len: # sites)
+                AVS of projcetion of eigenvectors onto edge of sample, ordered ascendingly wrt eigenvalues
+        """
+
+        projector = np.zeros(int((self.T+1)*(self.T+2)/2))
+
+        # keep in mind that site counting starts at 1 but indexing starts at 0
+        for i in range(0, self.T +1): # run over base of the traingle
+            projector[int((i+1)*i/2)] = 1
+        
+        for i in range(2, self.T+2): # run over right side of triangle 
+            projector[int(self.T*(self.T+1)/2+i-1)] = 1
+
+        for i in range(2, self.T +1): # run over left side of triangle
+            projector[int(i*(i+1)/2 -1)] = 1
+
+        projection = np.transpose(projector) @ (np.absolute(self.eivec)**2)
+
+        return projection
 
     def Chi_abs_dist_plot(self):
 
@@ -153,10 +179,41 @@ class post_analysis:
 
         return
 
+    def DOS_hist(self): 
+        
+        fig, ax = plt.subplots()
+        ax.hist(self.eival, bins = 24)
+        ax.set_title(rf"DOS for {int((self.T+1)*(self.T+2)/2)} sites, $\kappa$ = {self.kappa}, $\beta$ = {self.beta}")
+
+    def flux_hist_plot(self):
+
+        fig, ax = plt.subplots()
+        flux_arr = []
+
+        for plaqu in self.plaqu_dict:
+            orientation, corners = self.plaqu_dict[plaqu]
+            
+
+            if orientation == 'up':
+                base = self.pop_link_dict[str(corners[0]) + str(corners[1])][3]
+                right = self.pop_link_dict[str(corners[1])+str(corners[2])][3]
+                left = self.pop_link_dict[str(corners[0]) + str(corners[2])][3]
+                phase = np.angle(base*np.conjugate(left)*right) 
+
+
+            elif orientation == 'down':
+                right = self.pop_link_dict[str(corners[0]) + str(corners[2])][3]
+                top = self.pop_link_dict[str(corners[1]) + str(corners[2])][3]
+                left = self.pop_link_dict[str(corners[0]) + str(corners[1])][3]
+                phase = np.angle(right*np.conjugate(top)*np.conjugate(left))
+
+
+            flux_arr.append(phase)
+
+        ax.hist(flux_arr)
+        
+        return
     
-
-
-
     def free_en_calc(self):
         '''
         calculates the free energy desnsity of a given mean field solution
@@ -328,11 +385,7 @@ class post_analysis:
         cbar.set_ticklabels([f"$-\pi$", f"$-\pi / 2$", "0", f"$\pi / 2$", f"$\pi$"])
         ax.grid()
 
-    def DOS_hist(self): 
-        
-        fig, ax = plt.subplots()
-        ax.hist(self.eival, bins = 24)
-        ax.set_title(rf"DOS for {int((self.T+1)*(self.T+2)/2)} sites, $\kappa$ = {self.kappa}, $\beta$ = {self.beta}")
+
 
     def Chi_path_plot(self):
         

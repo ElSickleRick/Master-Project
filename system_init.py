@@ -14,7 +14,21 @@ class system_init:
         self.theta = theta
 
         return
-    
+   
+    """
+    chi_init options include 
+    0/"complex": random complex, 
+    1/"real": random real, 
+    "up": 0/pi-flux phase with pi flux in up-triangles, 
+    "down": 0/pi-flux phase with pi flux in down-triangles, 
+    "zero": zero flux in all plaquettes, 
+    "pi": pi flux in all plaquettes, 
+    "pi/2": pi/2 flux in every plaquette
+    "-pi/2" : -pi/2 flux in every plaquette
+    "VBS": valence bond solid (only for T=3!)
+    """
+
+
     def init_master(self, chi_init):
         '''
         chi convention: the entry for link a -> b contains chi_{ab} ( ~ <c_a^\dag c_b>)
@@ -202,7 +216,8 @@ class system_init:
             s, e = link_dict[i]
 
             bond_len = np.linalg.norm( np.array(str_cord_dict[s][1]) - np.array(str_cord_dict[e][1]) ) # length of strained bond
-            J = (1-self.mag_elas*(bond_len - 1))
+            # J = (1-self.mag_elas*(bond_len - 1))
+            J = np.exp(-self.mag_elas*(bond_len -1))
 
 
             if J > 0:
@@ -228,7 +243,7 @@ class system_init:
         '''
         # mu_arr = self.rng.random(int((self.T+1)*(self.T+2)/2)) #random positive initialization
         # mu_arr = np.zeros(int((self.T+1)*(self.T+2)/2)) # zero intialization
-        mu_arr = np.full(int((self.T+1)*(self.T+2)/2), 0)
+        mu_arr = np.full(int((self.T+1)*(self.T+2)/2), mu)
 
         return mu_arr
 
@@ -353,6 +368,11 @@ class system_init:
         link_dict['45'][3] = 0.5
         link_dict['78'][3]= 0.5
         link_dict['910'][3] = 0.5
+
+
+    def noise_machine(self, pop_link_dict, mu_arr, chi_scale, mu_scale):
+        
+        return pop_link_dict, mu_arr
 
         
 
