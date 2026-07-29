@@ -308,7 +308,7 @@ class post_analysis:
 
     def real_space_plot(self):
         
-        variant = "t" # if "chi" -> abs(chi) ist plotted, if "t" -> hopping amplitude is plotted
+        variant = "chi" # if "chi" -> abs(chi) ist plotted, if "t" -> hopping amplitude is plotted
 
         lw_min = 0
         lw_max = 12

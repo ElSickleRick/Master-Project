@@ -370,31 +370,23 @@ class system_init:
         link_dict['910'][3] = 0.5
 
 
-    def noise_machine(self, pop_link_dict, mu_arr, chi_scale, mu_scale):
+    def noise_machine(self, pop_link_dict, mu_arr, chi_noise_scale, mu_noise_scale):
         
-        return pop_link_dict, mu_arr
+        chi_bound = 0.05
+        mu_bound = 0.05
+
+        for x in pop_link_dict:
+            s, e, J, chi = pop_link_dict[x]
+            chi_real = np.real(chi)
+            chi_imag = np.imag(chi)
+            pop_link_dict[x][3] += chi_noise_scale*(self.rng.uniform(-1,1)*max(np.absolute(chi_real), chi_bound) + 1j*self.rng.uniform(-1,1)*max(np.absolute(chi_imag), chi_bound))
+
+        for i in range(0, len(mu_arr)-1):
+            mu_arr[i] += mu_noise_scale*self.rng.uniform(-1,1)*max(np.absolute(mu_arr[i]), mu_bound)
+        
+        return mu_arr
 
         
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
-    
-
-
-#print(uNN_dict_gen(T))
-    
    
     
     

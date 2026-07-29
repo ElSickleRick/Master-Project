@@ -17,7 +17,20 @@ path_head = "/home/kuerschner/Documents/Master-Project/data/strain_var"
 
 def DOS_slider():
     bins = 24 # nu,ber of bins in the histogram
-    categories = [0.9, 0.95, 0.99]
+    categories = [0.75, 0.99]
+
+
+    cmap = clr.LinearSegmentedColormap.from_list("periodic", ["blue", "red"])
+    norm = clr.Normalize(vmin = categories[0], vmax = categories[-1])
+    
+    color_points = [categories[0]]
+    for i in range(0, len(categories)-1):
+            color_points.append((categories[i] + categories[i+1])/2)
+    color_points.append(categories[-1])
+
+    colors = cmap(norm(color_points))
+
+
 
     def edge_projection(T, eivec):
 
@@ -88,16 +101,16 @@ def DOS_slider():
             
             projection = edge_projection(T, eivec)
             
-            eival_dict.update({C : np.array([eival[projection < categories[0]]])})
+            eival_dict.update({C : list([eival[projection < categories[0]]])})
             
-            for i in(0, len(categories)-2):
+            for i in range(0, len(categories)-1):
 
-                states = np.logical_and( projection > categories[i], projection <= categories[i+1])
-                np.append(eival_dict[C], [states], axis = 0)
+                mask = np.logical_and( projection > categories[i], projection <= categories[i+1])
+                states = list(eival[mask])
+                eival_dict[C].append(states)
 
-            np.append(eival_dict[C], [eival[projection > categories[-1]]], axis = 0)
-            print(np.shape(eival_dict[C]))
-
+            eival_dict[C].append(list(eival[projection > categories[-1]]))
+ 
             with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
                 miscellaneous = pickle.load(f)
             seed = miscellaneous["seed"]
@@ -106,7 +119,7 @@ def DOS_slider():
     
     
     current = 0
-    ax.hist(eival_dict[C_arr[0]], bins = bins, stacked = True)
+    ax.hist(eival_dict[C_arr[0]], bins = bins, color = colors, stacked = True)
     ax.set_title(f"C = {current}")
 
     ax_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
@@ -122,7 +135,7 @@ def DOS_slider():
     def update(val):
         i = int(slider.val)
         ax.clear()
-        ax.hist(eival_dict[C_arr[i]], bins = bins, stacked = True)
+        ax.hist(eival_dict[C_arr[i]], bins = bins, color = colors, stacked = True)
         ax.set_title(f"C = {C_arr[i]}")
         fig.canvas.draw_idle()
 
@@ -291,8 +304,8 @@ def state_real_space_plot_slider():
     bins = 24
 
     projects = {
-            # 'T=45_2707_01' :  "T=45",
-            'T=45_rot_2707_01' : "T=45 rotated",
+            'T=45_2707_01' :  "T=45",
+            # 'T=45_rot_2707_01' : "T=45 rotated",
                 }
 
     fig, ax  = plt.subplots(1,2)
@@ -358,7 +371,7 @@ def state_real_space_plot_slider():
         
      
     colors = []
-    cmap = clr.LinearSegmentedColormap.from_list("white_red_blac", [(0, "white"), (1/9, "red"), (1, "black")], gamma=0.75)
+    cmap = clr.LinearSegmentedColormap.from_list("white_red_blac", [(0, "white"), (1/9, "red"), (1, "black")], gamma=0.6)
 
     C_current = 0
     eigen_current = 0
@@ -437,6 +450,7 @@ def state_real_space_plot_slider():
 
 
 
-DOS_slider()
-# gap_state_real_space_plot()
+
+# DOS_slider()
+state_real_space_plot_slider()
 # real_space_plot_slider()
