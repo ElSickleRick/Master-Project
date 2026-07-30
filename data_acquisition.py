@@ -161,6 +161,33 @@ class data_miner:
                         found_target == True
                         save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
 
+    def mag_elas_iter(seed, rng, T, kappa, beta,  C,  theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras):
+        
+        mag_elas_arr = np.arange(0, 11.5, 0.5)
+        chi_init, chi_noise_scale, mu_noise_scale = init_paras 
+
+        for i in range(0, len(mag_elas_arr)):
+            mag_elas = mag_elas_arr[i]
+
+            print(rf"now doing mag_elas=", mag_elas, f" ({i+1}/{len(mag_elas_arr)})")
+
+            path_sub = os.path.join("mag_elas_var", project_name, f"mag_elas = {mag_elas}")
+
+            init = system_init(T, kappa, rng, C, mag_elas, theta) 
+            link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
+            mu_arr = init.noise_machine(pop_link_dict, mu_arr, chi_noise_scale, mu_noise_scale)
+
+            meth = methods(T, beta, kappa, C, mag_elas)
+            mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
+
+            max_iter_cond, sc_iter_max = iter_paras
+
+            if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
+
+                save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
+
+
+
 
 
 

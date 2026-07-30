@@ -246,7 +246,7 @@ class post_analysis:
         iterations = np.arange(1, sc_iter+1, 1)
 
         ax.scatter(iterations, free_energy_hist, s = 4)
-        ax.set_yscale('symlog')
+        # ax.set_yscale('symlog')
         ax.set_title("evolution of 'free energy'")
         ax.set_ylabel("F in units of J")
         ax.set_xlabel("iterations")

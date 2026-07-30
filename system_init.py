@@ -373,7 +373,7 @@ class system_init:
     def noise_machine(self, pop_link_dict, mu_arr, chi_noise_scale, mu_noise_scale):
         
         chi_bound = 0.05
-        mu_bound = 0.05
+        mu_bound = 0.1
 
         for x in pop_link_dict:
             s, e, J, chi = pop_link_dict[x]
