@@ -163,7 +163,7 @@ class data_miner:
 
     def mag_elas_iter(seed, rng, T, kappa, beta,  C,  theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras):
         
-        mag_elas_arr = np.arange(0, 11.5, 0.5)
+        mag_elas_arr = np.linspace(0, 35, 15, endpoint = True)
         chi_init, chi_noise_scale, mu_noise_scale = init_paras 
 
         for i in range(0, len(mag_elas_arr)):

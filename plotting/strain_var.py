@@ -405,7 +405,7 @@ def state_real_space_plot_slider():
             ax = ax_eigen_slider,
             label = 'E',
             valmin = 0,
-            valmax = int((T+1)*(T+2)/2),
+            valmax = int((T+1)*(T+2)/2-1),
             valinit = eigen_current,
             valstep = 1
             )

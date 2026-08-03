@@ -17,11 +17,11 @@ rng = np.random.default_rng(seed)
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 10 # # triangles in base
+T  = 26 # # triangles in base
 kappa = 10 # biquadratic exchange constant
 beta = 200 # 200 # inverse temperatur
 C = 0.5 # 0.5 # strain strength x linear sytem size 
-mag_elas = 11 # 2 # magneto-elastic coupling
+mag_elas = 37 # 2 # magneto-elastic coupling
 theta = 0 # rotation angle of the strain pattern (np.pi/2)
 
 'initialization parameters'
@@ -79,8 +79,9 @@ print(free_energy_hist[-1])
 
 """
 
-project_name  = "T=10_3007_02"
+project_name  = "T=26_0308_01"
 data_miner.mag_elas_iter(seed, rng, T, kappa, beta,  C,  theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
+
 
 
 plt.show()

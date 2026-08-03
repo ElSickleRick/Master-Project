@@ -7,6 +7,7 @@ from matplotlib.widgets import Slider
 import matplotlib.patches as ptch
 import matplotlib.colors as clr
 import matplotlib.cm as cm
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import os
 import pickle
 from system_init import system_init
@@ -16,7 +17,7 @@ path_head = "/home/kuerschner/Documents/Master-Project/data/mag_elas_var"
 
 
 
-def real_space_plot_slider(): 
+def real_space(): 
 
     bins = 24
 
@@ -39,9 +40,9 @@ def real_space_plot_slider():
         pop_link_dict_dict = {}
         eival_dict = {}
 
-        for C in os.listdir(project_path):
+        for mag_elas in os.listdir(project_path):
 
-            size_path = os.path.join(project_path, C)
+            size_path = os.path.join(project_path, mag_elas)
 
             with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
                 pop_link_dict = pickle.load(f)
@@ -192,7 +193,234 @@ def real_space_plot_slider():
     plt.show()
 
 
-real_space_plot_slider()
+def J_t():
+
+    bins = 15
 
 
+    projects = {
+                # 'T=10_3007_01' : "T = 10",
+                'T=10_3007_01' : "T=10",
+                # 'T=10_rot_3007_01' : "T = 10 + rotation",
+                }
+
+    fig, ax  = plt.subplots(1,3)  
+    plt.subplots_adjust(bottom=0.25)
+
+    for project in projects:
+        project_path = os.path.join(path_head, project)
+    
+        J_dict = {}
+        t_dict = {}
+        chi_abs_dict = {}
+        mag_elas_arr = []
+
+        for mag_elas in os.listdir(project_path):
+
+            size_path = os.path.join(project_path, mag_elas)
+
+            with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
+                pop_link_dict = pickle.load(f)
+
+            with open(os.path.join(size_path, "mu_arr.pkl"), "rb") as f:
+                mu_arr = pickle.load(f)
+
+            with open(os.path.join(size_path, "eival.pkl"), "rb") as f:
+                eival = pickle.load(f)
+
+            with open(os.path.join(size_path, "eivec.pkl"), "rb") as f:
+                eivec = pickle.load(f)
+
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)
+
+            T = info["T"]
+            kappa = info["kappa"]
+            beta = info["beta"]
+            C = info["C"]
+            mag_elas = info["mag_elas"]
+            theta = info["theta"]
+
+            with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
+                miscellaneous = pickle.load(f)
+            seed = miscellaneous["seed"]
+            chi_init = miscellaneous["chi_init"]
+            
+            mag_elas_arr.append(mag_elas)
+            J_dict.update({mag_elas : []})
+            chi_abs_dict.update({mag_elas : []})
+            t_dict.update({mag_elas: []})
+
+            for x in pop_link_dict.keys():
+                s, e, J, chi = pop_link_dict[x]
+
+                J_dict[mag_elas].append(J)
+                chi_abs_dict[mag_elas].append(np.absolute(chi))
+                t_dict[mag_elas].append(np.absolute(J*chi*(1+kappa/2 - 4*kappa*np.absolute(chi)**2)))
+
+    ax[0].hist(J_dict[mag_elas_arr[0]], bins = bins)
+    ax[1].hist(chi_abs_dict[mag_elas_arr[0]], bins = bins)
+    ax[2].hist(t_dict[mag_elas_arr[0]], bins = bins)
+    
+    mag_elas_current = 0
+    ax_mag_elas_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
+    mag_elas_slider = Slider(
+            ax = ax_mag_elas_slider,
+            label = 'magneto-elastic coupling',
+            valmin = 0,
+            valmax = len(mag_elas_arr)-1,
+            valinit = mag_elas_current,
+            valstep = 1
+            )
+
+    def mag_elas_update(value):
+        i = int(mag_elas_slider.val)
+        for axes in ax:
+            axes.clear()
+        ax[0].hist(J_dict[mag_elas_arr[i]], bins = bins)
+        ax[1].hist(chi_abs_dict[mag_elas_arr[i]], bins = bins)
+        ax[2].hist(t_dict[mag_elas_arr[i]], bins = bins)
+        return
+       
+    mag_elas_slider.on_changed(mag_elas_update)
+    plt.show()
+
+
+def LDOS():
+
+    bins = 25
+    width = 0.1
+
+
+    projects = {
+                # 'T=10_3007_01' : "T = 10",
+                'T=10_3007_01' : "T=10",
+                # 'T=10_rot_3007_01' : "T = 10 + rotation",
+                }
+
+    fig, ax  = plt.subplots()
+    axins = inset_axes(ax, width="30%", height="30%", loc="upper right")
+    plt.subplots_adjust(bottom=0.25)
+
+    for project in projects:
+        project_path = os.path.join(path_head, project)
+    
+        mag_elas_arr = []
+        eival_dict = {}
+        eivec_avs_dict = {}
+
+        for mag_elas in os.listdir(project_path):
+
+            size_path = os.path.join(project_path, mag_elas)
+
+            with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
+                pop_link_dict = pickle.load(f)
+
+            with open(os.path.join(size_path, "mu_arr.pkl"), "rb") as f:
+                mu_arr = pickle.load(f)
+
+            with open(os.path.join(size_path, "eival.pkl"), "rb") as f:
+                eival = pickle.load(f)
+
+            with open(os.path.join(size_path, "eivec.pkl"), "rb") as f:
+                eivec = pickle.load(f)
+
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)
+
+            T = info["T"]
+            kappa = info["kappa"]
+            beta = info["beta"]
+            C = info["C"]
+            mag_elas = info["mag_elas"]
+            theta = info["theta"]
+
+            with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
+                miscellaneous = pickle.load(f)
+            seed = miscellaneous["seed"]
+            chi_init = miscellaneous["chi_init"]
+            
+            mag_elas_arr.append(mag_elas)
+            eivec_avs_dict.update({mag_elas : np.absolute(eivec)**2})
+            eival_dict.update({mag_elas: eival})
+
+        
+        rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
+        sys_init = system_init(T, kappa, rng, C, mag_elas, theta)
+        strain_cord_dict = sys_init.strain_cord_gen()
+        ul_dict = sys_init.link_dict_gen()
+
+        grid = np.empty((0,2))
+
+        for i in range(1, int((T+1)*(T+2)/2+1)):
+            
+            cords = np.array([strain_cord_dict[i][1]])
+            grid = np.append(grid, cords, axis = 0)    
+
+    def plot_grid(): 
+        for link in ul_dict:
+
+            s, e = ul_dict[link]
+
+            x = [grid[s-1][0],grid[e-1][0]]
+            y = [grid[s-1][1], grid[e-1][1]]
+
+            axins.plot(x, y, c = "grey", linewidth = 1, zorder = 2)
+
+    mag_elas_current = 0
+    pos_current = 32
+    
+    ax.bar(eival_dict[mag_elas_current], eivec_avs_dict[mag_elas_current][pos_current, :], width  = width)
+    # ax.hist(LDOS_dict[mag_elas_current][pos_current, :], bins = bins)
+    plot_grid()
+
+    axins.scatter_artist = axins.scatter(grid[pos_current, 0], grid[pos_current, 1], s=20, color='red')
+
+    
+    ax_mag_elas_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
+    mag_elas_slider = Slider(
+            ax = ax_mag_elas_slider,
+            label = 'mag_elas',
+            valmin = 0,
+            valmax = len(mag_elas_arr)-1,
+            valinit = mag_elas_current,
+            valstep = 1
+            )
+
+    ax_pos_slider = plt.axes([0.2, 0.05, 0.6, 0.05])
+    pos_slider = Slider(
+            ax = ax_pos_slider,
+            label = 'position',
+            valmin = 0,
+            valmax = int((T+1)*(T+2)/2-1),
+            valinit = pos_current,
+            valstep = 1
+            )
+
+    def slider_update(val):
+
+        i = int(mag_elas_slider.val)
+        pos  = int(pos_slider.val)
+
+        ax.clear()
+        axins.scatter_artist.set_visible(False)
+        
+        ax.bar(eival_dict[mag_elas_arr[i]], eivec_avs_dict[mag_elas_arr[i]][pos, :], width = width)
+        # ax.hist(LDOS_dict[mag_elas_arr[i]][pos, :], bins = bins)
+        axins.scatter_artist = axins.scatter(grid[pos, 0], grid[pos, 1], s=20, color='red')
+
+
+    mag_elas_slider.on_changed(slider_update)
+    pos_slider.on_changed(slider_update)
+
+    plt.show()
+
+
+
+
+
+
+# real_space_plot_slider()
+# J_t_hist_plot()
+LDOS()
 
