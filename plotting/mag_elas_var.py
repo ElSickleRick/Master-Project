@@ -25,6 +25,7 @@ def real_space():
                 # 'T=10_3007_01' : "T = 10",
                 'T=10_3007_01' : "T=10",
                 # 'T=10_rot_3007_01' : "T = 10 + rotation",
+                # 'T=26_0308_01' : "T=26",
                 }
 
     fig, ax  = plt.subplots(1,3)
@@ -158,7 +159,7 @@ def real_space():
         # ax[1].set_xticks([-np.pi, -np.pi/2, 0, np.pi/2, np.pi],)
         # ax[1].set_xticklabels([f"-$\pi$", f"$-\pi/2$", "0", f"$\pi/2$", f"$\pi$"])
 
-        ax[2].hist(eival_dict[mag_elas_arr[i]]/np.exp(-mag_elas_arr[i]*C), bins = 24)
+        ax[2].hist(eival_dict[mag_elas_arr[i]]*mag_elas_arr[i]**2/np.exp(mag_elas_arr[i]), bins = 24)
         
         return 
     
@@ -200,8 +201,9 @@ def J_t():
 
     projects = {
                 # 'T=10_3007_01' : "T = 10",
-                'T=10_3007_01' : "T=10",
+                # 'T=10_3007_01' : "T=10",
                 # 'T=10_rot_3007_01' : "T = 10 + rotation",
+                'T=26_0308_01' : "T=26",
                 }
 
     fig, ax  = plt.subplots(1,3)  
@@ -420,7 +422,6 @@ def LDOS():
 
 
 
-# real_space_plot_slider()
-# J_t_hist_plot()
-LDOS()
+# real_space()
+# J_t()LDOS()
 
