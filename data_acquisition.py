@@ -125,41 +125,34 @@ class data_miner:
                 save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
 
 
-    def cond_strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target):
+    def strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras):
+        
+        chi_init, chi_noise_scale, mu_noise_scale = init_paras
 
-        for C in [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6]:
+        C_arr= [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65]
+
+        for i in range(0, len(C_arr)):
             
-            i = 1
-            found_target = False
+            C = C_arr[i]
 
-            while found_target == False:
+            print("now doing C=", C, f" ({i+1}/ {len(C_arr)})")
 
-                print("now doing C=", C, " run number:", i)
-                i += 1
+            path_sub = os.path.join("strain_var", project_name, f"C = {C}")
 
-                path_sub = os.path.join("strain_var", project_name, f"C = {C}")
+            init = system_init(T, kappa, rng, C, mag_elas, theta) 
+            link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
+            mu_arr = init.noise_machine(pop_link_dict, mu_arr, chi_noise_scale, mu_noise_scale)
 
-                init = system_init(T, kappa, rng, C, mag_elas, theta) 
-                link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
+            meth = methods(T, beta, kappa, C, mag_elas)
+            mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
 
-                meth = methods(T, beta, kappa, C, mag_elas)
-                mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
+            max_iter_cond, sc_iter_max = iter_paras
 
-                max_iter_cond, sc_iter_max = iter_paras
-
-                post_ana = post_analysis(T, kappa, beta, C, mag_elas, strain_cord_dict, plaqu_dict, pop_link_dict, eival, eivec, mu_arr) 
-                if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
+            post_ana = post_analysis(T, kappa, beta, C, mag_elas, strain_cord_dict, plaqu_dict, pop_link_dict, eival, eivec, mu_arr) 
+            if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
                     
-                    if target_con == True:
-                        found_target = post_ana.plaqu_dict_check(target)
-                        
-                        if found_target == True:
-                                save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
+                save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
 
-
-                    elif target_con == False:
-                        found_target == True
-                        save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
 
     def mag_elas_iter(seed, rng, T, kappa, beta,  C,  theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras):
         

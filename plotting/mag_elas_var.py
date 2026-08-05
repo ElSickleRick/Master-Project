@@ -263,6 +263,8 @@ def J_t():
     ax[0].hist(J_dict[mag_elas_arr[0]], bins = bins)
     ax[1].hist(chi_abs_dict[mag_elas_arr[0]], bins = bins)
     ax[2].hist(t_dict[mag_elas_arr[0]], bins = bins)
+
+    values = np.linspace(0, 20, 1000)
     
     mag_elas_current = 0
     ax_mag_elas_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
@@ -296,9 +298,11 @@ def LDOS():
 
     projects = {
                 # 'T=10_3007_01' : "T = 10",
-                'T=10_3007_01' : "T=10",
+                # 'T=10_3007_01' : "T=10",
                 # 'T=10_rot_3007_01' : "T = 10 + rotation",
+                'T=26_0308_01' : "T=26",
                 }
+
 
     fig, ax  = plt.subplots()
     axins = inset_axes(ax, width="30%", height="30%", loc="upper right")
@@ -310,6 +314,8 @@ def LDOS():
         mag_elas_arr = []
         eival_dict = {}
         eivec_avs_dict = {}
+        t_mean_dict = {}
+
 
         for mag_elas in os.listdir(project_path):
 
@@ -345,6 +351,13 @@ def LDOS():
             mag_elas_arr.append(mag_elas)
             eivec_avs_dict.update({mag_elas : np.absolute(eivec)**2})
             eival_dict.update({mag_elas: eival})
+            
+            t = 0
+            for x in pop_link_dict:
+                s, e, J, chi = pop_link_dict[x]
+                t += np.absolute(J*chi*(1+kappa/2 - 4*kappa*np.absolute(chi)**2))
+
+            t_mean_dict.update({mag_elas : 2*t/(3*T*(T+1))})
 
         
         rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
@@ -372,11 +385,12 @@ def LDOS():
     mag_elas_current = 0
     pos_current = 32
     
-    ax.bar(eival_dict[mag_elas_current], eivec_avs_dict[mag_elas_current][pos_current, :], width  = width)
-    # ax.hist(LDOS_dict[mag_elas_current][pos_current, :], bins = bins)
+    ax.vlines(eival_dict[mag_elas_current]/t_mean_dict[mag_elas_current],0 , 0.3, color = "grey", linestyle = "dashed", lw = 0.1)
+    ax.bar(eival_dict[mag_elas_current]/t_mean_dict[mag_elas_current], eivec_avs_dict[mag_elas_current][pos_current, :], width  = width)
     plot_grid()
 
     axins.scatter_artist = axins.scatter(grid[pos_current, 0], grid[pos_current, 1], s=20, color='red')
+    axins.grid()
 
     
     ax_mag_elas_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
@@ -406,10 +420,13 @@ def LDOS():
 
         ax.clear()
         axins.scatter_artist.set_visible(False)
-        
-        ax.bar(eival_dict[mag_elas_arr[i]], eivec_avs_dict[mag_elas_arr[i]][pos, :], width = width)
-        # ax.hist(LDOS_dict[mag_elas_arr[i]][pos, :], bins = bins)
+
+
+
+        ax.vlines(eival_dict[mag_elas_arr[i]]/t_mean_dict[mag_elas_arr[i]],0 , 0.3, color = "grey", linestyle = "dashed", lw = 0.1)
+        ax.bar(eival_dict[mag_elas_arr[i]]/t_mean_dict[mag_elas_arr[i]], eivec_avs_dict[mag_elas_arr[i]][pos, :], width = width)
         axins.scatter_artist = axins.scatter(grid[pos, 0], grid[pos, 1], s=20, color='red')
+        print(np.max(eival_dict[mag_elas_arr[i]]/t_mean_dict[mag_elas_arr[i]]))
 
 
     mag_elas_slider.on_changed(slider_update)
@@ -423,5 +440,6 @@ def LDOS():
 
 
 # real_space()
-# J_t()LDOS()
+# J_t()
+LDOS()
 

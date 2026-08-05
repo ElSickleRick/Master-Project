@@ -216,8 +216,8 @@ class system_init:
             s, e = link_dict[i]
 
             bond_len = np.linalg.norm( np.array(str_cord_dict[s][1]) - np.array(str_cord_dict[e][1]) ) # length of strained bond
-            # J = (1-self.mag_elas*(bond_len - 1))
-            J = np.exp(-self.mag_elas*(bond_len -1))
+            J = (1-self.mag_elas*(bond_len - 1))
+            # J = np.exp(-self.mag_elas*(bond_len -1))
 
 
             if J > 0:

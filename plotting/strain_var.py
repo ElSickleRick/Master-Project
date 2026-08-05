@@ -7,6 +7,7 @@ from matplotlib.widgets import Slider
 import matplotlib.patches as ptch
 import matplotlib.colors as clr
 import matplotlib.cm as cm
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import os
 import pickle
 from system_init import system_init
@@ -15,7 +16,7 @@ from analysis import post_analysis
 path_head = "/home/kuerschner/Documents/Master-Project/data/strain_var"
 
 
-def DOS_slider():
+def DOS():
     bins = 24 # nu,ber of bins in the histogram
     categories = [0.75, 0.99]
 
@@ -143,14 +144,154 @@ def DOS_slider():
     slider.on_changed(update)
     plt.show()
 
-def real_space_plot_slider(): 
+def LDOS():
+
+    bins = 85
+
+
+    fig, ax  = plt.subplots()
+    axins = inset_axes(ax, width="30%", height="30%", loc="upper right")
+    plt.subplots_adjust(bottom=0.25)
+
+    for project in projects:
+        project_path = os.path.join(path_head, project)
+    
+        C_arr = []
+        eival_dict = {}
+        eivec_avs_dict = {}
+        grid_dict = {}
+
+
+        for C in os.listdir(project_path):
+
+            size_path = os.path.join(project_path, C)
+
+            with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
+                pop_link_dict = pickle.load(f)
+
+            with open(os.path.join(size_path, "mu_arr.pkl"), "rb") as f:
+                mu_arr = pickle.load(f)
+
+            with open(os.path.join(size_path, "eival.pkl"), "rb") as f:
+                eival = pickle.load(f)
+
+            with open(os.path.join(size_path, "eivec.pkl"), "rb") as f:
+                eivec = pickle.load(f)
+
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)
+
+            T = info["T"]
+            kappa = info["kappa"]
+            beta = info["beta"]
+            C = info["C"]
+            mag_elas = info["mag_elas"]
+            theta = info["theta"]
+
+            with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
+                miscellaneous = pickle.load(f)
+            seed = miscellaneous["seed"]
+            chi_init = miscellaneous["chi_init"]
+            
+            C_arr.append(C)
+            eivec_avs_dict.update({C : np.absolute(eivec[: ,eival >= 0])**2})
+            eival_dict.update({C : eival[eival >= 0]})
+
+        
+            rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
+            sys_init = system_init(T, kappa, rng, C, mag_elas, theta)
+            strain_cord_dict = sys_init.strain_cord_gen()
+            ul_dict = sys_init.link_dict_gen()
+
+            grid = np.empty((0,2))
+
+            for i in range(1, int((T+1)*(T+2)/2+1)):
+            
+                cords = np.array([strain_cord_dict[i][1]])
+                grid = np.append(grid, cords, axis = 0) 
+
+            grid_dict.update({ C : grid})
+
+    def plot_grid(i): 
+        for link in ul_dict:
+
+            s, e = ul_dict[link]
+
+            x = [grid_dict[C_arr[i]][s-1][0],grid_dict[C_arr[i]][e-1][0]]
+            y = [grid_dict[C_arr[i]][s-1][1], grid_dict[C_arr[i]][e-1][1]]
+
+            axins.plot(x, y, c = "grey", linewidth = 1, zorder = 2)
+
+    C_current = 0
+    pos_current = 480
+    
+    ax.hist(eival_dict[C_current], bins = bins, weights = eivec_avs_dict[C_current][pos_current, :], ec = 'black', fc = 'green')
+    plot_grid(C_current)
+
+    axins.scatter_artist = axins.scatter(grid[pos_current, 0], grid[pos_current, 1], s=20, color='red')
+    axins.grid()
+
+    ax.set_xlim(0, np.max(eival)+ 0.2)
+
+    
+    ax_C_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
+    C_slider = Slider(
+            ax = ax_C_slider,
+            label = 'C',
+            valmin = 0,
+            valmax = len(C_arr)-1,
+            valinit = C_current,
+            valstep = 1
+            )
+
+    ax_pos_slider = plt.axes([0.2, 0.05, 0.6, 0.05])
+    pos_slider = Slider(
+            ax = ax_pos_slider,
+            label = 'position',
+            valmin = 0,
+            valmax = int((T+1)*(T+2)/2-1),
+            valinit = pos_current,
+            valstep = 1
+            )
+
+
+    def C_update(val):
+
+        i = int(C_slider.val)
+        pos  = int(pos_slider.val)
+
+        ax.clear()
+        axins.clear()
+        axins.scatter_artist.set_visible(False)
+        
+        plot_grid(i)
+        ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos, :], ec = 'black', fc = 'green')
+        axins.scatter_artist = axins.scatter(grid_dict[C_arr[i]][pos, 0], grid_dict[C_arr[i]][pos, 1], s=20, color='red')
+
+        ax.set_xlim(0, np.max(eival)+ 0.2)
+
+    def pos_update(val):
+
+        i = int(C_slider.val)
+        pos  = int(pos_slider.val)
+
+        ax.clear()
+        axins.scatter_artist.set_visible(False)
+
+        ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos, :], ec = 'black', fc = 'green')
+        axins.scatter_artist = axins.scatter(grid_dict[C_arr[i]][pos, 0], grid_dict[C_arr[i]][pos, 1], s=20, color='red')
+
+        ax.set_xlim(0, np.max(eival + 0.2))
+
+
+    C_slider.on_changed(C_update)
+    pos_slider.on_changed(pos_update)
+
+    plt.show()
+
+def real_space(): 
 
     bins = 24
-
-    projects = {
-            'T=45_2707_01' :  "T=45",
-            # 'T=45_rot_2707_01' : "T=45 rotated",
-                }
 
     fig, ax  = plt.subplots()
     ax.set_aspect('equal', adjustable='box')
@@ -299,14 +440,9 @@ def real_space_plot_slider():
 
 
 
-def state_real_space_plot_slider():
+def localization_real_space():
     
     bins = 24
-
-    projects = {
-            'T=45_2707_01' :  "T=45",
-            # 'T=45_rot_2707_01' : "T=45 rotated",
-                }
 
     fig, ax  = plt.subplots(1,2)
     plt.subplots_adjust(bottom=0.25)
@@ -450,7 +586,102 @@ def state_real_space_plot_slider():
 
 
 
+def J_t():
 
-# DOS_slider()
-state_real_space_plot_slider()
-# real_space_plot_slider()
+    bins = 15
+
+    fig, ax  = plt.subplots(1,3)  
+    plt.subplots_adjust(bottom=0.25)
+
+    for project in projects:
+        project_path = os.path.join(path_head, project)
+    
+        J_dict = {}
+        t_dict = {}
+        chi_abs_dict = {}
+        C_arr = []
+
+        for C in os.listdir(project_path):
+
+            size_path = os.path.join(project_path, C)
+
+            with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
+                pop_link_dict = pickle.load(f)
+
+            with open(os.path.join(size_path, "mu_arr.pkl"), "rb") as f:
+                mu_arr = pickle.load(f)
+
+            with open(os.path.join(size_path, "eival.pkl"), "rb") as f:
+                eival = pickle.load(f)
+
+            with open(os.path.join(size_path, "eivec.pkl"), "rb") as f:
+                eivec = pickle.load(f)
+
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)
+
+            T = info["T"]
+            kappa = info["kappa"]
+            beta = info["beta"]
+            C = info["C"]
+            mag_elas = info["mag_elas"]
+            theta = info["theta"]
+
+            with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
+                miscellaneous = pickle.load(f)
+            seed = miscellaneous["seed"]
+            chi_init = miscellaneous["chi_init"]
+            
+            C_arr.append(C)
+            J_dict.update({C : []})
+            chi_abs_dict.update({C : []})
+            t_dict.update({C: []})
+
+            for x in pop_link_dict.keys():
+                s, e, J, chi = pop_link_dict[x]
+
+                J_dict[C].append(J)
+                chi_abs_dict[C].append(np.absolute(chi))
+                t_dict[C].append(np.absolute(J*chi*(1+kappa/2 - 4*kappa*np.absolute(chi)**2)))
+
+    ax[0].hist(J_dict[C_arr[0]], bins = bins)
+    ax[1].hist(chi_abs_dict[C_arr[0]], bins = bins)
+    ax[2].hist(t_dict[C_arr[0]], bins = bins)
+
+    values = np.linspace(0, 20, 1000)
+    
+    C_current = 0
+    ax_C_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
+    C_slider = Slider(
+            ax = ax_C_slider,
+            label = 'C',
+            valmin = 0,
+            valmax = len(C_arr)-1,
+            valinit = C_current,
+            valstep = 1
+            )
+
+    def C_update(val):
+        i = int(C_slider.val)
+        for axes in ax:
+            axes.clear()
+        ax[0].hist(J_dict[C_arr[i]], bins = bins)
+        ax[1].hist(chi_abs_dict[C_arr[i]], bins = bins)
+        ax[2].hist(t_dict[C_arr[i]], bins = bins)
+        return
+       
+    C_slider.on_changed(C_update)
+    plt.show()
+
+
+projects = {
+        # 'T=45_2707_01' :  "T=45",
+        # 'T=45_rot_2707_01' : "T=45 rotated",
+        # 'T=45_exp_0508_01' : "T=45 exp",
+        'T=45_lin_0508_01' : "T=45 lin",
+            }
+# DOS()
+# LDOS()
+real_space()
+# localization_real_space()
+# J_t()
