@@ -16,6 +16,7 @@ from analysis import post_analysis
 path_head = "/home/kuerschner/Documents/Master-Project/data/strain_var"
 
 
+
 def DOS():
     bins = 24 # nu,ber of bins in the histogram
     categories = [0.75, 0.99]
@@ -151,6 +152,7 @@ def LDOS():
 
     fig, ax  = plt.subplots()
     axins = inset_axes(ax, width="30%", height="30%", loc="upper right")
+    axins.set_aspect('equal','datalim')
     plt.subplots_adjust(bottom=0.25)
 
     for project in projects:
@@ -194,8 +196,10 @@ def LDOS():
             chi_init = miscellaneous["chi_init"]
             
             C_arr.append(C)
-            eivec_avs_dict.update({C : np.absolute(eivec[: ,eival >= 0])**2})
-            eival_dict.update({C : eival[eival >= 0]})
+            eivec_avs_dict.update({C : np.absolute(eivec)**2})
+            eival_dict.update({C : eival})
+            # eivec_avs_dict.update({C : np.absolute(eivec[: ,eival >= 0])**2})
+            # eival_dict.update({C : eival[eival >= 0]})
 
         
             rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
@@ -231,7 +235,7 @@ def LDOS():
     axins.scatter_artist = axins.scatter(grid[pos_current, 0], grid[pos_current, 1], s=20, color='red')
     axins.grid()
 
-    ax.set_xlim(0, np.max(eival)+ 0.2)
+    ax.set_xlim(np.min(eival) - 0.1 , np.max(eival) + 0.1)
 
     
     ax_C_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
@@ -267,8 +271,9 @@ def LDOS():
         plot_grid(i)
         ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos, :], ec = 'black', fc = 'green')
         axins.scatter_artist = axins.scatter(grid_dict[C_arr[i]][pos, 0], grid_dict[C_arr[i]][pos, 1], s=20, color='red')
+        axins.grid()
 
-        ax.set_xlim(0, np.max(eival)+ 0.2)
+        ax.set_xlim(np.min(eival) - 0.1, np.max(eival) + 0.1)
 
     def pos_update(val):
 
@@ -280,8 +285,9 @@ def LDOS():
 
         ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos, :], ec = 'black', fc = 'green')
         axins.scatter_artist = axins.scatter(grid_dict[C_arr[i]][pos, 0], grid_dict[C_arr[i]][pos, 1], s=20, color='red')
+        axins.grid()
 
-        ax.set_xlim(0, np.max(eival + 0.2))
+        ax.set_xlim(np.min(eival) - 0.1 , np.max(eival + 0.1))
 
 
     C_slider.on_changed(C_update)
@@ -289,7 +295,7 @@ def LDOS():
 
     plt.show()
 
-def real_space(): 
+def real_space(mode): 
 
     bins = 24
 
@@ -386,8 +392,17 @@ def real_space():
 
                 ax.plot(x, y, c = 'k', linewidth = lw, zorder = 3)
         
-        cmap = clr.LinearSegmentedColormap.from_list("periodic", ["purple", "blue", "white",  "red", "purple"])
-        norm = clr.Normalize(vmin = -np.pi, vmax = np.pi)
+
+
+                
+        if mode == 'flux':
+            cmap = clr.LinearSegmentedColormap.from_list("periodic", ["purple", "blue", "white",  "red", "purple"])
+            norm = clr.Normalize(vmin = -np.pi, vmax = np.pi)
+            
+        elif mode == 'pi/2':
+            cmap = clr.LinearSegmentedColormap.from_list("green_pourple", ["green", "white",  "purple"])
+            norm = clr.Normalize(vmin = np.pi/2 - 0.01, vmax = np.pi/2 + 0.01)
+
 
         for plaqu in plaqu_dict:
             orientation, corners = plaqu_dict[plaqu]
@@ -397,7 +412,7 @@ def real_space():
                 base = pop_link_dict_dict[C_arr[i]][str(corners[0]) + str(corners[1])][3]
                 right = pop_link_dict_dict[C_arr[i]][str(corners[1])+str(corners[2])][3]
                 left = pop_link_dict_dict[C_arr[i]][str(corners[0]) + str(corners[2])][3]
-                phase = np.angle(base*np.conjugate(left)*right) 
+                phase = np.angle(base*np.conjugate(left)*right)
 
 
             elif orientation == 'down':
@@ -405,16 +420,20 @@ def real_space():
                 top = pop_link_dict_dict[C_arr[i]][str(corners[1]) + str(corners[2])][3]
                 left = pop_link_dict_dict[C_arr[i]][str(corners[0]) + str(corners[1])][3]
                 phase = np.angle(right*np.conjugate(top)*np.conjugate(left))
-
             
             color = cmap(norm(phase))
             triangle = ptch.Polygon([grid_dict[C_arr[i]][int(corners[0]-1)], grid_dict[C_arr[i]][int(corners[1]-1)], grid_dict[C_arr[i]][int(corners[2]-1)]], color = color, zorder = 1)
             ax.add_patch(triangle)
-        return 
+        return norm, cmap 
     
 
     C_current = 0
-    real_space_plot(0)
+    norm, cmap = real_space_plot(0)
+
+
+    sm = cm.ScalarMappable(norm = norm, cmap = cmap)
+    sm.set_array([])
+    cbar = plt.colorbar(sm, ax = ax) 
    
 
     ax_C_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
@@ -510,9 +529,9 @@ def localization_real_space():
     cmap = clr.LinearSegmentedColormap.from_list("white_red_blac", [(0, "white"), (1/9, "red"), (1, "black")], gamma=0.6)
 
     C_current = 0
-    eigen_current = 0
+    eigen_current = 540
 
-    ax[0].scatter(grid_dict[C_arr[0]][:,0], grid_dict[C_arr[0]][:,1] , s = 20, c = [cmap(np.absolute(x)**2) for x in eivec_dict[C_arr[0]][:,0]], marker = "o", zorder = 3)
+    ax[0].scatter(grid_dict[C_arr[C_current]][:,0], grid_dict[C_arr[C_current]][:,1] , s = 20, c = [cmap(np.absolute(x)**2) for x in eivec_dict[C_arr[C_current]][:,eigen_current-1]], marker = "o", zorder = 3)
 
     for link in ul_dict:
 
@@ -524,7 +543,7 @@ def localization_real_space():
         ax[0].plot(x, y, c = "grey", linewidth = 1, zorder = 2)
 
     ax[1].hist(eival_dict[C_arr[0]], bins)
-    ax[1].axvline(eival_dict[0][0], color = "red", zorder = 3)
+    ax[1].axvline(eival_dict[C_arr[C_current]][eigen_current], color = "red", zorder = 3)
 
     ax_C_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
     C_slider = Slider(
@@ -674,14 +693,20 @@ def J_t():
     plt.show()
 
 
-projects = {
-        # 'T=45_2707_01' :  "T=45",
-        # 'T=45_rot_2707_01' : "T=45 rotated",
-        # 'T=45_exp_0508_01' : "T=45 exp",
-        'T=45_lin_0508_01' : "T=45 lin",
+
+if __name__ == "__main__":
+
+
+    projects = {
+            # 'T=45_2707_01' :  "T=45",
+            'T=45_rot_2707_01' : "T=45 rotated",
+            # 'T=45_exp_0508_01' : "T=45 exp",
+            # 'T=45_lin_0508_01' : "T=45 lin",
             }
-# DOS()
-# LDOS()
-real_space()
-# localization_real_space()
-# J_t()
+    mode = 'pi/2' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2# DOS()
+
+    # LDOS()
+    # real_space(mode)
+    localization_real_space()
+    # J_t()
+

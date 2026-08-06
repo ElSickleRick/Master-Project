@@ -23,9 +23,9 @@ def real_space():
 
     projects = {
                 # 'T=10_3007_01' : "T = 10",
-                'T=10_3007_01' : "T=10",
+                # 'T=10_3007_01' : "T=10",
                 # 'T=10_rot_3007_01' : "T = 10 + rotation",
-                # 'T=26_0308_01' : "T=26",
+                'T=26_0308_01' : "T=26",
                 }
 
     fig, ax  = plt.subplots(1,3)
@@ -439,7 +439,7 @@ def LDOS():
 
 
 
-# real_space()
+real_space()
 # J_t()
-LDOS()
+# LDOS()
 
