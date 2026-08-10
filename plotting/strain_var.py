@@ -15,11 +15,21 @@ from analysis import post_analysis
 
 path_head = "/home/kuerschner/Documents/Master-Project/data/strain_var"
 
+def sort(arr):
+
+    sorted_arr = np.array(np.sort(arr), dtype = object)
+
+    zeros = np.where(sorted_arr == 0)[0]
+    for i in zeros:
+        sorted_arr[i] = int(0)
+    
+    return sorted_arr
+    
 
 
 def DOS():
-    bins = 24 # nu,ber of bins in the histogram
-    categories = [0.75, 0.99]
+    bins = 66 #24 # nmber of bins in the histogram
+    categories = [99]
 
 
     cmap = clr.LinearSegmentedColormap.from_list("periodic", ["blue", "red"])
@@ -61,23 +71,32 @@ def DOS():
 
         return projection
 
-    projects = {
-            'T=45_2707_01' :  "T=45",
-            # 'T=45_rot_2707_01' : "T=45 rotated",
-                }
 
     fig, ax  = plt.subplots()
     plt.subplots_adjust(bottom=0.25)
 
     for project in projects:
         project_path = os.path.join(path_head, project)
-    
+        
         C_arr = []
         eival_dict = {}
-        
-        for C in os.listdir(project_path):
 
-            size_path = os.path.join(project_path, C)
+
+        for path in os.listdir(project_path):
+
+            size_path = os.path.join(project_path, path)
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)  
+
+            C = info["C"]
+            C_arr.append(C)
+
+        C_arr = sort(C_arr)
+
+        
+        for C in C_arr:
+
+            size_path = os.path.join(project_path, f"C = {C}")
 
             with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
                 pop_link_dict = pickle.load(f)
@@ -98,9 +117,7 @@ def DOS():
             beta = info["beta"]
             C = info["C"]
             mag_elas = info["mag_elas"]
-        
-            C_arr.append(C)
-            
+                    
             projection = edge_projection(T, eivec)
             
             eival_dict.update({C : list([eival[projection < categories[0]]])})
@@ -116,7 +133,7 @@ def DOS():
             with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
                 miscellaneous = pickle.load(f)
             seed = miscellaneous["seed"]
-            chi_init = miscellaneous["chi_init"]
+            chi_init = miscellaneous["init paras"][0]
 
     
     
@@ -147,7 +164,8 @@ def DOS():
 
 def LDOS():
 
-    bins = 85
+    bins =150 # 85
+
 
 
     fig, ax  = plt.subplots()
@@ -163,11 +181,22 @@ def LDOS():
         eivec_avs_dict = {}
         grid_dict = {}
 
+        for path in os.listdir(project_path):
 
-        for C in os.listdir(project_path):
+            size_path = os.path.join(project_path, path)
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)  
 
-            size_path = os.path.join(project_path, C)
+            C = info["C"]
+            C_arr.append(C)
 
+        C_arr = sort(C_arr)
+
+        
+        for C in C_arr:
+
+            size_path = os.path.join(project_path, f"C = {C}")
+       
             with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
                 pop_link_dict = pickle.load(f)
 
@@ -193,9 +222,9 @@ def LDOS():
             with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
                 miscellaneous = pickle.load(f)
             seed = miscellaneous["seed"]
-            chi_init = miscellaneous["chi_init"]
+            chi_init, elas_variant, chi_noise_scale, mu_noise_scale = miscellaneous["init paras"]
             
-            C_arr.append(C)
+
             eivec_avs_dict.update({C : np.absolute(eivec)**2})
             eival_dict.update({C : eival})
             # eivec_avs_dict.update({C : np.absolute(eivec[: ,eival >= 0])**2})
@@ -203,7 +232,7 @@ def LDOS():
 
         
             rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
-            sys_init = system_init(T, kappa, rng, C, mag_elas, theta)
+            sys_init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant)
             strain_cord_dict = sys_init.strain_cord_gen()
             ul_dict = sys_init.link_dict_gen()
 
@@ -310,9 +339,21 @@ def real_space(mode):
         grid_dict = {}
         pop_link_dict_dict = {}
 
-        for C in os.listdir(project_path):
+        for path in os.listdir(project_path):
 
-            size_path = os.path.join(project_path, C)
+            size_path = os.path.join(project_path, path)
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)  
+
+            C = info["C"]
+            C_arr.append(C)
+
+        C_arr = sort(C_arr)
+
+        
+        for C in C_arr:
+
+            size_path = os.path.join(project_path, f"C = {C}")
 
             with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
                 pop_link_dict = pickle.load(f)
@@ -339,10 +380,10 @@ def real_space(mode):
             with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
                 miscellaneous = pickle.load(f)
             seed = miscellaneous["seed"]
-            chi_init = miscellaneous["chi_init"]
+            chi_init, elas_variant, chi_noise_scale, mu_noise_scale = miscellaneous["init paras"]
         
             rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
-            sys_init = system_init(T, kappa, rng, C, mag_elas, theta)
+            sys_init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant)
             strain_cord_dict = sys_init.strain_cord_gen()
             plaqu_dict = sys_init.plaqu_dict_gen()
             ul_dict = sys_init.link_dict_gen()
@@ -355,7 +396,6 @@ def real_space(mode):
                 grid = np.append(grid, cords, axis = 0)
 
 
-            C_arr.append(C)
             grid_dict.update({C : grid})
             pop_link_dict_dict.update({C : pop_link_dict})
     
@@ -461,7 +501,7 @@ def real_space(mode):
 
 def localization_real_space():
     
-    bins = 24
+    bins = 66
 
     fig, ax  = plt.subplots(1,2)
     plt.subplots_adjust(bottom=0.25)
@@ -475,9 +515,21 @@ def localization_real_space():
         eivec_dict = {}
         grid_dict = {}
 
-        for C in os.listdir(project_path):
+        for path in os.listdir(project_path):
 
-            size_path = os.path.join(project_path, C)
+            size_path = os.path.join(project_path, path)
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)  
+
+            C = info["C"]
+            C_arr.append(C)
+
+        C_arr = sort(C_arr)
+
+        
+        for C in C_arr:
+
+            size_path = os.path.join(project_path, f"C = {C}")
 
             with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
                 pop_link_dict = pickle.load(f)
@@ -504,10 +556,10 @@ def localization_real_space():
             with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
                 miscellaneous = pickle.load(f)
             seed = miscellaneous["seed"]
-            chi_init = miscellaneous["chi_init"]
+            chi_init, elas_variant, chi_noise_scale, mu_noise_scale = miscellaneous["init paras"]
         
             rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
-            sys_init = system_init(T, kappa, rng, C, mag_elas, theta)
+            sys_init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant)
             strain_cord_dict = sys_init.strain_cord_gen()
             ul_dict = sys_init.link_dict_gen()
 
@@ -518,8 +570,6 @@ def localization_real_space():
                 cords = np.array([strain_cord_dict[i][1]])
                 grid = np.append(grid, cords, axis = 0)
 
-
-            C_arr.append(C)
             eival_dict.update({C : eival})
             eivec_dict.update({C : eivec})
             grid_dict.update({C : grid})
@@ -620,9 +670,21 @@ def J_t():
         chi_abs_dict = {}
         C_arr = []
 
-        for C in os.listdir(project_path):
+        for path in os.listdir(project_path):
 
-            size_path = os.path.join(project_path, C)
+            size_path = os.path.join(project_path, path)
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)  
+
+            C = info["C"]
+            C_arr.append(C)
+
+        C_arr = sort(C_arr)
+
+        
+        for C in C_arr:
+
+            size_path = os.path.join(project_path, f"C = {C}")
 
             with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
                 pop_link_dict = pickle.load(f)
@@ -646,12 +708,6 @@ def J_t():
             mag_elas = info["mag_elas"]
             theta = info["theta"]
 
-            with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
-                miscellaneous = pickle.load(f)
-            seed = miscellaneous["seed"]
-            chi_init = miscellaneous["chi_init"]
-            
-            C_arr.append(C)
             J_dict.update({C : []})
             chi_abs_dict.update({C : []})
             t_dict.update({C: []})
@@ -698,15 +754,16 @@ if __name__ == "__main__":
 
 
     projects = {
-            # 'T=45_2707_01' :  "T=45",
-            'T=45_rot_2707_01' : "T=45 rotated",
-            # 'T=45_exp_0508_01' : "T=45 exp",
-            # 'T=45_lin_0508_01' : "T=45 lin",
+            # 'T=45_lin_minus_pi_half_1008_01' : "-pi/2, lin",
+            # 'T=45_exp_minus_pi_half_1008_01' : "-pi/2, exp",
+            'T=45_exp_pi_half_0508_01' : "pi/2, exp",
+            # 'T=45_lin_pi_half_0508_01' : "pi/2, lin",
             }
-    mode = 'pi/2' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2# DOS()
-
-    # LDOS()
+    mode = 'pi/2' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2
+    
+    # DOS()
+    LDOS()
     # real_space(mode)
-    localization_real_space()
+    # localization_real_space()
     # J_t()
 

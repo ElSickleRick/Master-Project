@@ -10,7 +10,7 @@ from system_init import system_init
 from methods import methods
 from analysis import pre_analysis, post_analysis
 
-def save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec): 
+def save_data(path_sub, seed, init_paras, iter_paras, convergence_paras, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec): 
     path_head = "/home/kuerschner/Documents/Master-Project/data"
 
     save_path = os.path.join(path_head, path_sub)
@@ -35,7 +35,9 @@ def save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_
 
         miscellaneous = {
                 'seed' : seed,
-                'chi_init': chi_init,
+                'init paras': init_paras,
+                'iter paras' : iter_paras,
+                'convergence paras' : convergence_paras,
                 }
 
 
@@ -104,7 +106,9 @@ class data_miner:
                         save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
 
 
-    def zero_T_iter(seed, rng, T, kappa, C, mag_elas, theta, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras):
+    def zero_T_iter(seed, rng, T, kappa, C, mag_elas, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras):
+        
+        chi_init, elas_variant, chi_noise_scale, mu_noise_scale = init_paras
 
         for beta in [10, 20, 30, 50, 100, 150, 200, 250, 300]:
 
@@ -112,7 +116,7 @@ class data_miner:
 
             path_sub = os.path.join("zero_T_extrapol", project_name, f"beta = {beta}")
 
-            init = system_init(T, kappa, rng, C, mag_elas, theta) 
+            init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant) 
             link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
 
             meth = methods(T, beta, kappam, C, mag_elas)
@@ -122,12 +126,12 @@ class data_miner:
 
             if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
 
-                save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
+                save_data(path_sub, seed, init_paras, iter_paras, convergence_paras, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
 
 
     def strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras):
         
-        chi_init, chi_noise_scale, mu_noise_scale = init_paras
+        chi_init, elas_variant, chi_noise_scale, mu_noise_scale = init_paras
 
         C_arr= [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65]
 
@@ -139,7 +143,7 @@ class data_miner:
 
             path_sub = os.path.join("strain_var", project_name, f"C = {C}")
 
-            init = system_init(T, kappa, rng, C, mag_elas, theta) 
+            init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant) 
             link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
             mu_arr = init.noise_machine(pop_link_dict, mu_arr, chi_noise_scale, mu_noise_scale)
 
@@ -151,13 +155,13 @@ class data_miner:
             post_ana = post_analysis(T, kappa, beta, C, mag_elas, strain_cord_dict, plaqu_dict, pop_link_dict, eival, eivec, mu_arr) 
             if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
                     
-                save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
+                save_data(path_sub, seed, init_paras, iter_paras, convergence_paras, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
 
 
     def mag_elas_iter(seed, rng, T, kappa, beta,  C,  theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras):
         
         mag_elas_arr = np.linspace(0, 35, 15, endpoint = True)
-        chi_init, chi_noise_scale, mu_noise_scale = init_paras 
+        chi_init, elas_variant, chi_noise_scale, mu_noise_scale = init_paras 
 
         for i in range(0, len(mag_elas_arr)):
             mag_elas = mag_elas_arr[i]
@@ -166,7 +170,7 @@ class data_miner:
 
             path_sub = os.path.join("mag_elas_var", project_name, f"mag_elas = {mag_elas}")
 
-            init = system_init(T, kappa, rng, C, mag_elas, theta) 
+            init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant) 
             link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
             mu_arr = init.noise_machine(pop_link_dict, mu_arr, chi_noise_scale, mu_noise_scale)
 
@@ -177,7 +181,43 @@ class data_miner:
 
             if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
 
-                save_data(path_sub, seed, chi_init, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
+                save_data(path_sub, seed, init_paras, iter_paras, convergence_paras, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
+
+
+def strain_elas_grid(seed, rng, T, kappa, beta, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras):
+        
+        max_iter_cond, sc_iter_max = iter_paras
+        chi_init, elas_variant, chi_noise_scale, mu_noise_scale = init_paras
+
+        C_arr = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+        mag_elas_arr = [0, 3, 6, 9, 12, 15]
+        
+        for i in range(0, len(C_arr)):
+
+            C = C_arr[i]
+            C_path = f"C = {C}"
+
+            for j in range(0, len(mag_elas_arr)):
+
+                mag_elas = mag_elas_arr[j]
+                mag_elas_path = f"mag_elas = {mag_elas}"
+
+                print(f"now doing: C =  {C} ({i+1}/{len(C_arr)}), me-coupling = {mag_elas} ({j+1}/{len(mag_elas_arr)}) -> ({int(i*len(mag_elas_arr)  + j+1)}/{int(len(C_arr)*len(mag_elas_arr))})")
+
+                path_sub = os.path.join("strain_elas_grid", project_name, C_path, mag_elas_path)
+
+                init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant) 
+                link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
+                mu_arr = init.noise_machine(pop_link_dict, mu_arr, chi_noise_scale, mu_noise_scale)
+
+                meth = methods(T, beta, kappa, C, mag_elas)
+                mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_en_hist, eival, eivec, sc_iter = meth.MF_solver(rng, iter_paras, pre_ana_paras, convergence_paras, link_dict, plaqu_dict, mu_arr, pop_link_dict)
+
+
+
+                if max_iter_cond == False or (max_iter_cond == True and sc_iter != sc_iter_max):
+
+                    save_data(path_sub, seed, init_paras, iter_paras, convergence_paras, T, kappa, beta, C, mag_elas, theta, pop_link_dict, mu_arr, eival, eivec)
 
 
 

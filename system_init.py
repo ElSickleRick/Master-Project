@@ -4,7 +4,7 @@ import time
 
 class system_init:
 
-    def __init__(self,T, kappa, rng, C, mag_elas, theta): 
+    def __init__(self,T, kappa, rng, C, mag_elas, theta, elas_variant): 
 
         self.T = T
         self.kappa = kappa
@@ -12,6 +12,7 @@ class system_init:
         self.C = C
         self.mag_elas = mag_elas
         self.theta = theta
+        self.elas_variant = elas_variant
 
         return
    
@@ -216,8 +217,13 @@ class system_init:
             s, e = link_dict[i]
 
             bond_len = np.linalg.norm( np.array(str_cord_dict[s][1]) - np.array(str_cord_dict[e][1]) ) # length of strained bond
-            J = (1-self.mag_elas*(bond_len - 1))
-            # J = np.exp(-self.mag_elas*(bond_len -1))
+            if self.elas_variant == "linear":
+                J = (1-self.mag_elas*(bond_len - 1))
+            elif self.elas_variant == "exp":
+                J = np.exp(-self.mag_elas*(bond_len -1))
+            else:
+                print(r"Invalid entry for elas_variant (must be 'exp' or 'linear'). Skript stopped.")
+                quit()
 
 
             if J > 0:

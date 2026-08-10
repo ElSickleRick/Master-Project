@@ -26,6 +26,7 @@ theta = 0 # rotation angle of the strain pattern (np.pi/2)
 
 'initialization parameters'
 chi_init = "pi/2" # variants for initializing chi, for options see system_init
+elas_variant = "exp"  # "linear" or "exp"
 chi_noise_scale = 0.1 #0.025 # scale of the noise applied to the MF parameters relative to their real/imaginary part
 mu_noise_scale = 0.1 #0.025 # sclae of noise applied to chemical potentinals relative to their absolute value
 
@@ -36,15 +37,15 @@ chi_rm_scale = 0.3 # 0.3 # maximum value of random mixing parameter for MF-bond-
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 (usually 0.0001)
 chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-bond-parameter) (usually 0.0001)
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
-sc_iter_max = 5000 # maximum number of iterations before the self-consistency loop will terminate prematurely (requires max_iter_cond = True)
+sc_iter_max = 500 # maximum number of iterations before the self-consistency loop will terminate prematurely (requires max_iter_cond = True)
 
-init_paras = [chi_init, chi_noise_scale, mu_noise_scale]
+init_paras = [chi_init, elas_variant, chi_noise_scale, mu_noise_scale]
 iter_paras = [max_iter_cond, sc_iter_max]
 convergence_paras = [mu_step_base, mu_rm_scale, chi_rm_scale, N_dif_bd, chi_dif_bd]
 
 'analysis parameters:'
 mu_length = 10 # number of chemical potentials that are plotted
-bond_length = 10 # number of MF-bond-parameters that are plotted
+bond_length = 10 # number of MF-bond-parameters that are plottedelas_variant = "exp" # "exp" or "linear"
 plaqu_length = 10 # number of plaquettes that are plotted
 
 pre_ana_paras = [mu_length, bond_length, plaqu_length]
@@ -64,7 +65,7 @@ data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_p
 
 """ """
 
-init = system_init(T, kappa, rng, C, mag_elas, theta)
+init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant)
 link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
 mu_arr = init.noise_machine(pop_link_dict, mu_arr, chi_noise_scale, mu_noise_scale)
 
@@ -78,12 +79,15 @@ post_ana.flux_hist_plot()
 print(free_energy_hist[-1])
 
 
-""" 
+""" """ 
 
-project_name  = "T=45_lin_0508_01"
+project_name  = "T=45_lin_minus_pi_half_1008_01"
 data_miner.strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
 
+"""
 
+project_name = "T=45_1008_01"
+data_miner.strain_elas_grid(seed, rng, T, kappa, beta, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
 
 plt.show()
 
