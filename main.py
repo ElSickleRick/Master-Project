@@ -17,7 +17,7 @@ rng = np.random.default_rng(seed)
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 45 # # triangles in base
+T  = 47 # # triangles in base
 kappa = 10 # biquadratic exchange constant
 beta = 200 # 200 # inverse temperatur
 C = 0.65 # 0.5 # strain strength x linear sytem size 
@@ -79,9 +79,9 @@ post_ana.flux_hist_plot()
 print(free_energy_hist[-1])
 
 
-""" """ 
+"""  
 
-project_name  = "T=45_lin_minus_pi_half_1008_01"
+project_name  = "T=47_exp_pi_half_1108_01"
 data_miner.strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
 
 """
@@ -89,6 +89,7 @@ data_miner.strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name,
 project_name = "T=45_1008_01"
 data_miner.strain_elas_grid(seed, rng, T, kappa, beta, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
 
+"""
 plt.show()
 
 

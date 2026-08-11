@@ -28,7 +28,7 @@ def sort(arr):
 
 
 def DOS():
-    bins = 66 #24 # nmber of bins in the histogram
+    bins = 50 #24 # nmber of bins in the histogram
     categories = [99]
 
 
@@ -139,7 +139,6 @@ def DOS():
     
     current = 0
     ax.hist(eival_dict[C_arr[0]], bins = bins, color = colors, stacked = True)
-    ax.set_title(f"C = {current}")
 
     ax_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
     slider = Slider(
@@ -150,14 +149,28 @@ def DOS():
             valinit = current,
             valstep = 1
             )
+    slider.valtext.set_text(C_arr[current])
+
+    ax.set_title(f"DOS of {project}", size = "x-large")
+ 
+    params = (
+    rf"T = {T}" "\n"
+    rf"$\kappa$ = {kappa}" "\n"
+    rf"$\beta$ = {beta}" "\n"
+    rf"me-coupling = {mag_elas}"
+    )
+
+    ax.text(0.02, 0.98, params,transform=ax.transAxes,va="top",ha="left",bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),)
+
 
     def update(val):
         i = int(slider.val)
-        ax.clear()
+        for container in ax.containers:
+            container.remove()
         ax.hist(eival_dict[C_arr[i]], bins = bins, color = colors, stacked = True)
-        ax.set_title(f"C = {C_arr[i]}")
         fig.canvas.draw_idle()
 
+        slider.valtext.set_text(C_arr[i])
 
     slider.on_changed(update)
     plt.show()
@@ -286,14 +299,27 @@ def LDOS():
             valinit = pos_current,
             valstep = 1
             )
+    
+    C_slider.valtext.set_text(C_arr[C_current])
 
+    ax.set_title(f"LDOS of {project}", size = "x-large")
+ 
+    params = (
+    rf"T = {T}" "\n"
+    rf"$\kappa$ = {kappa}" "\n"
+    rf"$\beta$ = {beta}" "\n"
+    rf"me-coupling = {mag_elas}"
+    )
+
+    ax.text(0.02, 0.98, params,transform=ax.transAxes,va="top",ha="left",bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),)
 
     def C_update(val):
 
         i = int(C_slider.val)
         pos  = int(pos_slider.val)
 
-        ax.clear()
+        for container in ax.containers:
+            container.remove()
         axins.clear()
         axins.scatter_artist.set_visible(False)
         
@@ -304,12 +330,15 @@ def LDOS():
 
         ax.set_xlim(np.min(eival) - 0.1, np.max(eival) + 0.1)
 
+        C_slider.valtext.set_text(C_arr[i])
+
     def pos_update(val):
 
         i = int(C_slider.val)
         pos  = int(pos_slider.val)
-
-        ax.clear()
+       
+        for container in ax.containers:
+            container.remove()
         axins.scatter_artist.set_visible(False)
 
         ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos, :], ec = 'black', fc = 'green')
@@ -441,7 +470,11 @@ def real_space(mode):
             
         elif mode == 'pi/2':
             cmap = clr.LinearSegmentedColormap.from_list("green_pourple", ["green", "white",  "purple"])
-            norm = clr.Normalize(vmin = np.pi/2 - 0.01, vmax = np.pi/2 + 0.01)
+            norm = clr.Normalize(vmin = np.pi/2 - 0.001, vmax = np.pi/2 + 0.001)
+
+        elif mode == '-pi/2':
+            cmap = clr.LinearSegmentedColormap.from_list("green_pourple", ["green", "white",  "purple"])
+            norm = clr.Normalize(vmin = -np.pi/2 - 0.001, vmax = -np.pi/2 + 0.001)
 
 
         for plaqu in plaqu_dict:
@@ -486,13 +519,31 @@ def real_space(mode):
             valstep = 1
             )
 
+
+    C_slider.valtext.set_text(C_arr[C_current])
+
+    ax.set_title(f"{project}", size = "x-large")
+ 
+    params = (
+    rf"T = {T}" "\n"
+    rf"$\kappa$ = {kappa}" "\n"
+    rf"$\beta$ = {beta}" "\n"
+    rf"me-coupling = {mag_elas}"
+    )
+
+    ax.text(0.02, 0.98, params,transform=ax.transAxes,va="top",ha="left",bbox=dict(boxstyle="round", facecolor="white", alpha=0.8))
+
     def C_update(value):
         i = int(C_slider.val)
         ax.clear()
         real_space_plot(i)
+        
+        ax.text(0.02, 0.98, params,transform=ax.transAxes,va="top",ha="left",bbox=dict(boxstyle="round", facecolor="white", alpha=0.8))
+        C_slider.valtext.set_text(C_arr[i])
+        ax.set_title(f"{project}", size = "x-large")
         return
 
-    C_slider.on_changed(C_update)
+    C_slider.on_changed(C_update) 
     plt.show()
 
 
@@ -614,7 +665,17 @@ def localization_real_space():
             valinit = eigen_current,
             valstep = 1
             )
-            
+
+    C_slider.valtext.set_text(C_arr[C_current])
+ 
+    params = (
+    rf"T = {T}" "\n"
+    rf"$\kappa$ = {kappa}" "\n"
+    rf"$\beta$ = {beta}" "\n"
+    rf"me-coupling = {mag_elas}"
+    )
+
+    ax[0].text(0.02, 0.98, params,transform=ax[0].transAxes,va="top",ha="left",bbox=dict(boxstyle="round", facecolor="white", alpha=0.8))            
 
     def C_update(val):
         i = int(C_slider.val)
@@ -634,6 +695,9 @@ def localization_real_space():
             y = [grid_dict[C_arr[i]][s-1][1], grid_dict[C_arr[i]][e-1][1]]
 
             ax[0].plot(x, y, c = "grey", linewidth = 1, zorder = 2)
+    
+        ax[0].text(0.02, 0.98, params,transform=ax[0].transAxes,va="top",ha="left",bbox=dict(boxstyle="round", facecolor="white", alpha=0.8))            
+        C_slider.valtext.set_text(C_arr[i])
 
     def eigen_update(val):
         i = int(C_slider.val)
@@ -754,16 +818,18 @@ if __name__ == "__main__":
 
 
     projects = {
-            # 'T=45_lin_minus_pi_half_1008_01' : "-pi/2, lin",
+            'T=45_lin_minus_pi_half_1008_01' : "-pi/2, lin",
             # 'T=45_exp_minus_pi_half_1008_01' : "-pi/2, exp",
-            'T=45_exp_pi_half_0508_01' : "pi/2, exp",
+            # 'T=45_exp_pi_half_0508_01' : "pi/2, exp",
             # 'T=45_lin_pi_half_0508_01' : "pi/2, lin",
-            }
-    mode = 'pi/2' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2
+            # 'T=47_exp_pi_half_1108_01'  : "T=47",
+                }
+    mode = '-pi/2' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2, '-pi/2' shows derivation from -pi/2
     
     # DOS()
     LDOS()
     # real_space(mode)
     # localization_real_space()
     # J_t()
+
 
