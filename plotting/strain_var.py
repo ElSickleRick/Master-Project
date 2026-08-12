@@ -818,17 +818,17 @@ if __name__ == "__main__":
 
 
     projects = {
-            'T=45_lin_minus_pi_half_1008_01' : "-pi/2, lin",
+            # 'T=45_lin_minus_pi_half_1008_01' : "-pi/2, lin",
             # 'T=45_exp_minus_pi_half_1008_01' : "-pi/2, exp",
             # 'T=45_exp_pi_half_0508_01' : "pi/2, exp",
             # 'T=45_lin_pi_half_0508_01' : "pi/2, lin",
-            # 'T=47_exp_pi_half_1108_01'  : "T=47",
+             'T=47_exp_pi_half_1108_01'  : "T=47",
                 }
-    mode = '-pi/2' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2, '-pi/2' shows derivation from -pi/2
+    mode = 'pi/2' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2, '-pi/2' shows derivation from -pi/2
     
     # DOS()
-    LDOS()
-    # real_space(mode)
+    # LDOS()
+    real_space(mode)
     # localization_real_space()
     # J_t()
 

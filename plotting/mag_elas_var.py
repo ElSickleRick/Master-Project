@@ -16,19 +16,11 @@ from analysis import post_analysis
 path_head = "/home/kuerschner/Documents/Master-Project/data/mag_elas_var"
 
 
-
 def real_space(): 
 
     bins = 24
 
-    projects = {
-                # 'T=10_3007_01' : "T = 10",
-                # 'T=10_3007_01' : "T=10",
-                # 'T=10_rot_3007_01' : "T = 10 + rotation",
-                'T=26_0308_01' : "T=26",
-                }
-
-    fig, ax  = plt.subplots(1,3)
+    fig, ax  = plt.subplots(1,2)
     # ax[0].set_aspect('equal', adjustable='box')
     plt.subplots_adjust(bottom=0.25)
     
@@ -41,9 +33,22 @@ def real_space():
         pop_link_dict_dict = {}
         eival_dict = {}
 
-        for mag_elas in os.listdir(project_path):
 
-            size_path = os.path.join(project_path, mag_elas)
+
+        for path in os.listdir(project_path):
+
+            size_path = os.path.join(project_path, path)
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)  
+
+            mag_elas = info["mag_elas"]
+            mag_elas_arr.append(mag_elas)
+
+        mag_elas_arr = np.sort(mag_elas_arr)
+        
+        for mag_elas in mag_elas_arr:
+
+            size_path = os.path.join(project_path, f"mag_elas = {mag_elas}")
 
             with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
                 pop_link_dict = pickle.load(f)
@@ -71,9 +76,11 @@ def real_space():
                 miscellaneous = pickle.load(f)
             seed = miscellaneous["seed"]
             chi_init = miscellaneous["chi_init"]
+
+            elas_var = "exp"
         
             rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
-            sys_init = system_init(T, kappa, rng, C, mag_elas, theta)
+            sys_init = system_init(T, kappa, rng, C, mag_elas, theta, elas_var)
             strain_cord_dict = sys_init.strain_cord_gen()
             plaqu_dict = sys_init.plaqu_dict_gen()
             ul_dict = sys_init.link_dict_gen()
@@ -85,8 +92,6 @@ def real_space():
                 cords = np.array([strain_cord_dict[i][1]])
                 grid = np.append(grid, cords, axis = 0)
 
-
-            mag_elas_arr.append(mag_elas)
             grid_dict.update({mag_elas : grid})
             pop_link_dict_dict.update({mag_elas : pop_link_dict})
             eival_dict.update({mag_elas : eival})
@@ -155,11 +160,11 @@ def real_space():
             ax[0].add_patch(triangle)
 
 
-        ax[1].hist(phase_arr, bins = 25, range =  [np.pi/2 - np.pi/20, np.pi/2 + np.pi/20])
+        # ax[1].hist(phase_arr, bins = 25, range =  [np.pi/2 - np.pi/20, np.pi/2 + np.pi/20])
         # ax[1].set_xticks([-np.pi, -np.pi/2, 0, np.pi/2, np.pi],)
         # ax[1].set_xticklabels([f"-$\pi$", f"$-\pi/2$", "0", f"$\pi/2$", f"$\pi$"])
 
-        ax[2].hist(eival_dict[mag_elas_arr[i]]*mag_elas_arr[i]**2/np.exp(mag_elas_arr[i]), bins = 24)
+        ax[1].hist(eival_dict[mag_elas_arr[i]]*mag_elas_arr[i]**2/np.exp(mag_elas_arr[i]), bins = 24)
         
         return 
     
@@ -197,14 +202,6 @@ def real_space():
 def J_t():
 
     bins = 15
-
-
-    projects = {
-                # 'T=10_3007_01' : "T = 10",
-                # 'T=10_3007_01' : "T=10",
-                # 'T=10_rot_3007_01' : "T = 10 + rotation",
-                'T=26_0308_01' : "T=26",
-                }
 
     fig, ax  = plt.subplots(1,3)  
     plt.subplots_adjust(bottom=0.25)
@@ -296,14 +293,6 @@ def LDOS():
     width = 0.1
 
 
-    projects = {
-                # 'T=10_3007_01' : "T = 10",
-                # 'T=10_3007_01' : "T=10",
-                # 'T=10_rot_3007_01' : "T = 10 + rotation",
-                'T=26_0308_01' : "T=26",
-                }
-
-
     fig, ax  = plt.subplots()
     axins = inset_axes(ax, width="30%", height="30%", loc="upper right")
     plt.subplots_adjust(bottom=0.25)
@@ -317,9 +306,21 @@ def LDOS():
         t_mean_dict = {}
 
 
-        for mag_elas in os.listdir(project_path):
 
-            size_path = os.path.join(project_path, mag_elas)
+        for path in os.listdir(project_path):
+
+            size_path = os.path.join(project_path, path)
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)  
+
+            mag_elas = info["mag_elas"]
+            mag_elas_arr.append(mag_elas)
+
+        mag_elas_arr = np.sort(mag_elas_arr)
+        
+        for mag_elas in mag_elas_arr:
+
+            size_path = os.path.join(project_path, f"mag_elas = {mag_elas}")
 
             with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
                 pop_link_dict = pickle.load(f)
@@ -348,7 +349,7 @@ def LDOS():
             seed = miscellaneous["seed"]
             chi_init = miscellaneous["chi_init"]
             
-            mag_elas_arr.append(mag_elas)
+            # mag_elas_arr.append(mag_elas)
             eivec_avs_dict.update({mag_elas : np.absolute(eivec)**2})
             eival_dict.update({mag_elas: eival})
             
@@ -359,9 +360,10 @@ def LDOS():
 
             t_mean_dict.update({mag_elas : 2*t/(3*T*(T+1))})
 
-        
+        elas_var = "exp"
+
         rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
-        sys_init = system_init(T, kappa, rng, C, mag_elas, theta)
+        sys_init = system_init(T, kappa, rng, C, mag_elas, theta, elas_var)
         strain_cord_dict = sys_init.strain_cord_gen()
         ul_dict = sys_init.link_dict_gen()
 
@@ -436,10 +438,16 @@ def LDOS():
 
 
 
+projects = {
+            # 'T=10_3007_01' : "T = 10",
+            # 'T=10_3007_01' : "T=10",
+            # 'T=10_rot_3007_01' : "T = 10 + rotation",
+            'T=26_0308_01' : "T=26",
+            }
 
 
 
-real_space()
+# real_space()
 # J_t()
-# LDOS()
+LDOS()
 

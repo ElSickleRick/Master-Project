@@ -17,11 +17,11 @@ rng = np.random.default_rng(seed)
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 47 # # triangles in base
+T  = 45 # # triangles in base
 kappa = 10 # biquadratic exchange constant
 beta = 200 # 200 # inverse temperatur
-C = 0.65 # 0.5 # strain strength x linear sytem size 
-mag_elas = 1 # 2 # magneto-elastic coupling
+C = 0.1 # 0.5 # strain strength x linear sytem size 
+mag_elas = 5 # 2 # magneto-elastic coupling
 theta = 0 # rotation angle of the strain pattern (np.pi/2)
 
 'initialization parameters'
@@ -63,7 +63,7 @@ target_con = True
 target = -np.pi/2
 data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target)
 
-""" """
+""" 
 
 init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant)
 link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
@@ -84,7 +84,7 @@ print(free_energy_hist[-1])
 project_name  = "T=47_exp_pi_half_1108_01"
 data_miner.strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
 
-"""
+""" """
 
 project_name = "T=45_1008_01"
 data_miner.strain_elas_grid(seed, rng, T, kappa, beta, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
