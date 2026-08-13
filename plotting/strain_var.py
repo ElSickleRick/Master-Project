@@ -29,48 +29,6 @@ def sort(arr):
 
 def DOS():
     bins = 50 #24 # nmber of bins in the histogram
-    categories = [99]
-
-
-    cmap = clr.LinearSegmentedColormap.from_list("periodic", ["blue", "red"])
-    norm = clr.Normalize(vmin = categories[0], vmax = categories[-1])
-    
-    color_points = [categories[0]]
-    for i in range(0, len(categories)-1):
-            color_points.append((categories[i] + categories[i+1])/2)
-    color_points.append(categories[-1])
-
-    colors = cmap(norm(color_points))
-
-
-
-    def edge_projection(T, eivec):
-
-        """
-        returns AVS of projection of eigenvectors onto edge of sample
-        
-        OUTPUTS:
-        -------
-        projection: 1D array (len: # sites)
-                    AVS of projcetion of eigenvectors onto edge of sample, ordered ascendingly wrt eigenvalues
-        """
-
-        projector = np.zeros(int((T+1)*(T+2)/2))
-
-        # keep in mind that site counting starts at 1 but indexing starts at 0
-        for i in range(0, T +1): # run over base of the traingle
-            projector[int((i+1)*i/2)] = 1
-        
-        for i in range(2, T+2): # run over right side of triangle 
-            projector[int(T*(T+1)/2+i-1)] = 1
-
-        for i in range(2, T +1): # run over left side of triangle
-            projector[int(i*(i+1)/2 -1)] = 1
-
-        projection = np.transpose(projector) @ (np.absolute(eivec)**2)
-
-        return projection
-
 
     fig, ax  = plt.subplots()
     plt.subplots_adjust(bottom=0.25)
@@ -80,6 +38,7 @@ def DOS():
         
         C_arr = []
         eival_dict = {}
+        mu_arr_dict = {}
 
 
         for path in os.listdir(project_path):
@@ -117,28 +76,17 @@ def DOS():
             beta = info["beta"]
             C = info["C"]
             mag_elas = info["mag_elas"]
-                    
-            projection = edge_projection(T, eivec)
-            
-            eival_dict.update({C : list([eival[projection < categories[0]]])})
-            
-            for i in range(0, len(categories)-1):
 
-                mask = np.logical_and( projection > categories[i], projection <= categories[i+1])
-                states = list(eival[mask])
-                eival_dict[C].append(states)
+            
+            eival_dict.update({C : eival})
+            mu_arr_dict.update({C : mu_arr})
 
-            eival_dict[C].append(list(eival[projection > categories[-1]]))
- 
-            with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
-                miscellaneous = pickle.load(f)
-            seed = miscellaneous["seed"]
-            chi_init = miscellaneous["init paras"][0]
 
     
     
     current = 0
-    ax.hist(eival_dict[C_arr[0]], bins = bins, color = colors, stacked = True)
+    ax.hist(eival_dict[C_arr[0]], bins = bins, fc = "blue", ec = "black")
+    ax.vlines(np.mean(mu_arr_dict[C_arr[current]]), 0, 100, color = "red")
 
     ax_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
     slider = Slider(
@@ -167,7 +115,10 @@ def DOS():
         i = int(slider.val)
         for container in ax.containers:
             container.remove()
-        ax.hist(eival_dict[C_arr[i]], bins = bins, color = colors, stacked = True)
+        for lines in ax.collections:
+            lines.remove()
+        ax.vlines(np.mean(mu_arr_dict[C_arr[i]]), 0, 100, color = "red")
+        ax.hist(eival_dict[C_arr[i]], bins = bins, fc = "blue", ec = "black")
         fig.canvas.draw_idle()
 
         slider.valtext.set_text(C_arr[i])
@@ -177,7 +128,7 @@ def DOS():
 
 def LDOS():
 
-    bins =150 # 85
+    bins =75 # 85
 
 
 
@@ -193,6 +144,7 @@ def LDOS():
         eival_dict = {}
         eivec_avs_dict = {}
         grid_dict = {}
+        mu_arr_dict = {}
 
         for path in os.listdir(project_path):
 
@@ -240,6 +192,7 @@ def LDOS():
 
             eivec_avs_dict.update({C : np.absolute(eivec)**2})
             eival_dict.update({C : eival})
+            mu_arr_dict.update({C : mu_arr})
             # eivec_avs_dict.update({C : np.absolute(eivec[: ,eival >= 0])**2})
             # eival_dict.update({C : eival[eival >= 0]})
 
@@ -272,12 +225,13 @@ def LDOS():
     pos_current = 480
     
     ax.hist(eival_dict[C_current], bins = bins, weights = eivec_avs_dict[C_current][pos_current, :], ec = 'black', fc = 'green')
+    ax.vlines(np.mean(mu_arr_dict[C_arr[C_current]]), 0, 0.05, color = "red")
     plot_grid(C_current)
 
     axins.scatter_artist = axins.scatter(grid[pos_current, 0], grid[pos_current, 1], s=20, color='red')
     axins.grid()
 
-    ax.set_xlim(np.min(eival) - 0.1 , np.max(eival) + 0.1)
+    ax.set_xlim(np.min(eival_dict[C_arr[C_current]]) - 0.1 , np.max(eival_dict[C_arr[C_current]]) + 0.1)
 
     
     ax_C_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
@@ -320,16 +274,18 @@ def LDOS():
 
         for container in ax.containers:
             container.remove()
+        for col in ax.collections:
+            col.remove()
         axins.clear()
         axins.scatter_artist.set_visible(False)
         
         plot_grid(i)
         ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos, :], ec = 'black', fc = 'green')
+        ax.vlines(np.mean(mu_arr_dict[C_arr[i]]), 0, 0.05, color = "red")
         axins.scatter_artist = axins.scatter(grid_dict[C_arr[i]][pos, 0], grid_dict[C_arr[i]][pos, 1], s=20, color='red')
         axins.grid()
 
-        ax.set_xlim(np.min(eival) - 0.1, np.max(eival) + 0.1)
-
+        ax.set_xlim(np.min(eival_dict[C_arr[i]]) - 0.1 , np.max(eival_dict[C_arr[i]]) + 0.1)
         C_slider.valtext.set_text(C_arr[i])
 
     def pos_update(val):
@@ -339,13 +295,16 @@ def LDOS():
        
         for container in ax.containers:
             container.remove()
+        for col in ax.collections:
+            col.remove()
         axins.scatter_artist.set_visible(False)
 
         ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos, :], ec = 'black', fc = 'green')
+        ax.vlines(np.mean(mu_arr_dict[C_arr[i]]), 0, 0.05, color = "red")
         axins.scatter_artist = axins.scatter(grid_dict[C_arr[i]][pos, 0], grid_dict[C_arr[i]][pos, 1], s=20, color='red')
         axins.grid()
 
-        ax.set_xlim(np.min(eival) - 0.1 , np.max(eival + 0.1))
+        ax.set_xlim(np.min(eival_dict[C_arr[i]]) - 0.1 , np.max(eival_dict[C_arr[i]]) + 0.1)
 
 
     C_slider.on_changed(C_update)
@@ -822,13 +781,15 @@ if __name__ == "__main__":
             # 'T=45_exp_minus_pi_half_1008_01' : "-pi/2, exp",
             # 'T=45_exp_pi_half_0508_01' : "pi/2, exp",
             # 'T=45_lin_pi_half_0508_01' : "pi/2, lin",
-             'T=47_exp_pi_half_1108_01'  : "T=47",
-                }
-    mode = 'pi/2' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2, '-pi/2' shows derivation from -pi/2
+            # 'T=47_exp_pi_half_1108_01'  : "T=47",
+            # 'T=45_exp_up_1308_01' : "T=45, exp, up",
+            'T=65_exp_up_1308_01' : "T=65, exp, up",            
+            }
+    mode = 'flux' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2, '-pi/2' shows derivation from -pi/2
     
     # DOS()
-    # LDOS()
-    real_space(mode)
+    LDOS()
+    # real_space(mode)
     # localization_real_space()
     # J_t()
 
