@@ -17,22 +17,22 @@ rng = np.random.default_rng(seed)
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 45 # # triangles in base
+T  = 65 # # triangles in base
 kappa = 10 # biquadratic exchange constant
 beta = 200 # 200 # inverse temperatur
-C = 0.1 # 0.5 # strain strength x linear sytem size 
-mag_elas = 5 # 2 # magneto-elastic coupling
+C = 0 # 0.5 # strain strength x linear sytem size 
+mag_elas = 1 # 2 # magneto-elastic coupling
 theta = 0 # rotation angle of the strain pattern (np.pi/2)
 
 'initialization parameters'
-chi_init = "pi/2" # variants for initializing chi, for options see system_init
+chi_init = "up" # variants for initializing chi, for options see system_init
 elas_variant = "exp"  # "linear" or "exp"
 chi_noise_scale = 0.1 #0.025 # scale of the noise applied to the MF parameters relative to their real/imaginary part
 mu_noise_scale = 0.1 #0.025 # sclae of noise applied to chemical potentinals relative to their absolute value
 
 'convergence parameters:'
-mu_step_base = 1.1 # 1.15 #0.5   # mean step size of the chemical potential 
-mu_rm_scale = 0.3 # 0.35 # 0.3 # maximum size of fluctuations in both directions around the means step for mu (so interval is mu_step_base +- mu_rm_scale)
+mu_step_base = 0.5 #1.1 #0.5   # mean step size of the chemical potential 
+mu_rm_scale = 0.1 #0.3 # 0.3 # maximum size of fluctuations in both directions around the means step for mu (so interval is mu_step_base +- mu_rm_scale)
 chi_rm_scale = 0.3 # 0.3 # maximum value of random mixing parameter for MF-bond-parameters
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 (usually 0.0001)
 chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-bond-parameter) (usually 0.0001)
@@ -63,7 +63,7 @@ target_con = True
 target = -np.pi/2
 data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target)
 
-""" 
+""" """ 
 
 init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant)
 link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
@@ -75,16 +75,16 @@ mu_arr, pop_link_dict, mu_hist_dict, bond_hist_dict, plaqu_hist_dict, free_energ
 post_ana = post_analysis(T ,kappa, beta, C, mag_elas, strain_cord_dict, plaqu_dict, pop_link_dict, eival, eivec,  mu_arr)
 post_ana.MF_iter_plot(sc_iter, mu_hist_dict, bond_hist_dict, plaqu_hist_dict)
 post_ana.real_space_plot() 
-post_ana.flux_hist_plot()
+post_ana.DOS_hist()
+post_ana.mu_real_space_plot()
 print(free_energy_hist[-1])
-
 
 """  
 
-project_name  = "T=47_exp_pi_half_1108_01"
+project_name  = "T=65_exp_up_1308_01"
 data_miner.strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
 
-""" """
+""" 
 
 project_name = "T=45_1008_01"
 data_miner.strain_elas_grid(seed, rng, T, kappa, beta, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)

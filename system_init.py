@@ -4,7 +4,7 @@ import time
 
 class system_init:
 
-    def __init__(self,T, kappa, rng, C, mag_elas, theta, elas_variant): 
+    def __init__(self, T, kappa, rng, C, mag_elas, theta, elas_variant): 
 
         self.T = T
         self.kappa = kappa
@@ -186,20 +186,23 @@ class system_init:
 
 
     def strain_cord_gen(self):
+
+        """
+        counting of sites start at 1!!!
+        """
         
         s = int((self.T+1)*(self.T+2)/2) # # sites
-        c_max = self.T # maximum column number (column counting starts at 0 here!!)
  
         str_cord_dict = {}
 
         for i in range(1, s+1):
 
-            c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))-1) # caclulate column number c
-            p = int(i-c*(c+1)/2-1) # calculate position p inside column c 
+            c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # caclulate column number c
+            p = int(i-c*(c-1)/2) # calculate position p inside column c 
             
             # calculate the unstrained position of atom i:
-            x = c - p/2 - self.T/2
-            y = np.sqrt(3)*p/2 - self.T/(2*np.sqrt(3))
+            x = c - p/2 - self.T/2 - 1/2
+            y = np.sqrt(3)*p/2 - self.T/(2*np.sqrt(3)) - np.sqrt(3)/2
 
             # calcualte strained postions of atom i (the strain strength gets scaled with the linear system size):
             x_str = x + self.C*((x**2-y**2)*np.sin(2*self.theta) + 2*x*y*np.cos(2*self.theta))/self.T
@@ -235,7 +238,69 @@ class system_init:
                 quit() 
 
         return link_dict
-            
+
+    def symmetrie_dict_gen(self):
+        """
+        calculates all sets of lattice sites equivalent under symmetries of the unilateral triangle and returns them as a dictionary
+
+        RETURNS
+        -------
+        symmetrie_dict: dictionary
+                    keys are site numbers (usual convention), values are sets containing site numbers of symmetrie-equivalent sites
+        """
+
+        """
+        The new positions (c_new, p_new) interms of the old ones (c, p) are
+        
+        {c_new, p_new} = (A^{-1}*S*A)*{c, p} + A^{-1}*(S-Id)*b,
+
+        where A = {{1, -1/2}, {0, sqrt{3}/2}} and b = {-(T+1)/2, -(T+3)/(2sqrt{3})} and S are the (6) symmetrie transformations (acting on the physical         coordiantes {x, y}). Id is 2x2 unity.
+
+        In this convention counting for both c and p starts at 1
+
+        """
+                
+        s = int((self.T+1)*(self.T+2)/2) # # sites
+ 
+        symmetrie_dict = {}
+
+        for i in range(1, s+1):
+
+            c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # caclulate column number c
+            p = int(i-c*(c-1)/2) # calculate position p inside column c
+           
+            # Identity:
+            symmetrie_points = {i}
+
+            # rotation by 120°:
+            c_new = int(-p + 2 + self.T)
+            p_new = int(c - p + 1)
+            symmetrie_points.add(int(c_new*(c_new-1)/2+p_new))
+           
+            # rotation by 240°:
+            c_new = int(-c + p + 1 + self.T)
+            p_new = int(-c + 2 + self.T)
+            symmetrie_points.add(int(c_new*(c_new-1)/2+p_new))
+        
+            # first mirror axis (x-axis):
+            c_new = int(-c + p + 1 + self.T)
+            p_new = int(p)
+            symmetrie_points.add(int(c_new*(c_new-1)/2+p_new))
+     
+            # second mirror axis (perp on left side):
+            c_new = int(-p + 2 + self.T)
+            p_new = int(-c + 2 + self.T)
+            symmetrie_points.add(int(c_new*(c_new-1)/2+p_new))
+
+            # third mirror axis (perp on right side):
+            c_new = int(c)
+            p_new = int(c - p +1)
+            symmetrie_points.add(int(c_new*(c_new-1)/2+p_new))
+
+            symmetrie_dict.update({ i : list(symmetrie_points).sort()})
+
+        return symmetrie_dict
+
 
     def mu_init(self, mu):
 
@@ -376,16 +441,21 @@ class system_init:
         link_dict['910'][3] = 0.5
 
 
+
+
+
+
     def noise_machine(self, pop_link_dict, mu_arr, chi_noise_scale, mu_noise_scale):
         
-        chi_bound = 0.05
+        chi_bound = 0.1
         mu_bound = 0.1
 
         for x in pop_link_dict:
             s, e, J, chi = pop_link_dict[x]
             chi_real = np.real(chi)
             chi_imag = np.imag(chi)
-            pop_link_dict[x][3] += chi_noise_scale*(self.rng.uniform(-1,1)*max(np.absolute(chi_real), chi_bound) + 1j*self.rng.uniform(-1,1)*max(np.absolute(chi_imag), chi_bound))
+            pop_link_dict[x][3] += chi_noise_scale*(self.rng.uniform(-1,1)*max(np.absolute(chi_real), chi_bound) + 1j*self.rng.uniform(-1,1)*chi_imag)
+        #chi_imag is not varied if it is 0, to not leave the real MF sector. 
 
         for i in range(0, len(mu_arr)-1):
             mu_arr[i] += mu_noise_scale*self.rng.uniform(-1,1)*max(np.absolute(mu_arr[i]), mu_bound)

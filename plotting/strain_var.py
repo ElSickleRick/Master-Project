@@ -128,9 +128,7 @@ def DOS():
 
 def LDOS():
 
-    bins =75 # 85
-
-
+    bins = 65 # 85
 
     fig, ax  = plt.subplots()
     axins = inset_axes(ax, width="30%", height="30%", loc="upper right")
@@ -193,9 +191,6 @@ def LDOS():
             eivec_avs_dict.update({C : np.absolute(eivec)**2})
             eival_dict.update({C : eival})
             mu_arr_dict.update({C : mu_arr})
-            # eivec_avs_dict.update({C : np.absolute(eivec[: ,eival >= 0])**2})
-            # eival_dict.update({C : eival[eival >= 0]})
-
         
             rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
             sys_init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant)
@@ -211,6 +206,43 @@ def LDOS():
 
             grid_dict.update({ C : grid})
 
+    """copied from system_init:"""
+                
+    s = int((T+1)*(T+2)/2) # # sites
+ 
+    symmetrie_dict = {}
+
+    for i in range(1, s+1):
+
+        c = int(np.ceil(-1/2 + np.sqrt(-3/4 +2*i))) # caclulate column number c
+        p = int(i-c*(c-1)/2) # calculate position p inside column c
+           
+        symmetrie_points = {i}
+
+        c_new = int(-p + 2 + T)
+        p_new = int(c - p + 1)
+        symmetrie_points.add(int(c_new*(c_new-1)/2+p_new))
+           
+        c_new = int(-c + p + 1 + T)
+        p_new = int(-c + 2 + T)
+        symmetrie_points.add(int(c_new*(c_new-1)/2+p_new))
+        
+        c_new = int(-c + p + 1 + T)
+        p_new = int(p)
+        symmetrie_points.add(int(c_new*(c_new-1)/2+p_new))
+     
+        c_new = int(-p + 2 + T)
+        p_new = int(-c + 2 + T)
+        symmetrie_points.add(int(c_new*(c_new-1)/2+p_new))
+
+        c_new = int(c)
+        p_new = int(c - p +1)
+        symmetrie_points.add(int(c_new*(c_new-1)/2+p_new))
+
+
+        symmetrie_dict[i] = sorted(symmetrie_points)
+
+
     def plot_grid(i): 
         for link in ul_dict:
 
@@ -219,40 +251,31 @@ def LDOS():
             x = [grid_dict[C_arr[i]][s-1][0],grid_dict[C_arr[i]][e-1][0]]
             y = [grid_dict[C_arr[i]][s-1][1], grid_dict[C_arr[i]][e-1][1]]
 
-            axins.plot(x, y, c = "grey", linewidth = 1, zorder = 2)
+            axins.plot(x, y, c = "grey", linewidth = 1, zorder = 1)
 
     C_current = 0
-    pos_current = 480
+    pos_current = int(np.floor(2*T/3)*(np.floor(2*T/3)-1)/2 + np.ceil(T/3))
+    sym_current = 1
     
-    ax.hist(eival_dict[C_current], bins = bins, weights = eivec_avs_dict[C_current][pos_current, :], ec = 'black', fc = 'green')
+    ax.hist(eival_dict[C_current], bins = bins, weights = eivec_avs_dict[C_current][pos_current-1, :], ec = 'black', fc = 'green')
     ax.vlines(np.mean(mu_arr_dict[C_arr[C_current]]), 0, 0.05, color = "red")
     plot_grid(C_current)
 
-    axins.scatter_artist = axins.scatter(grid[pos_current, 0], grid[pos_current, 1], s=20, color='red')
-    axins.grid()
+    sym_dots = axins.scatter([grid_dict[C_arr[C_current]][i-1, 0] for i in symmetrie_dict[pos_current]], [grid_dict[C_arr[C_current]][i-1, 1] for i in symmetrie_dict[pos_current]], s = 20, color = "blue", zorder = 2)
+    pos_dot = axins.scatter(grid_dict[C_arr[C_current]][pos_current-1, 0], grid_dict[C_arr[C_current]][pos_current-1, 1], s=20, color='red', zorder = 3)
+
 
     ax.set_xlim(np.min(eival_dict[C_arr[C_current]]) - 0.1 , np.max(eival_dict[C_arr[C_current]]) + 0.1)
 
     
-    ax_C_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
-    C_slider = Slider(
-            ax = ax_C_slider,
-            label = 'C',
-            valmin = 0,
-            valmax = len(C_arr)-1,
-            valinit = C_current,
-            valstep = 1
-            )
+    ax_C_slider = plt.axes([0.2, 0.15, 0.6, 0.05])
+    C_slider = Slider(ax = ax_C_slider, label = 'C', valmin = 0, valmax = len(C_arr)-1, valinit = C_current, valstep = 1)
 
-    ax_pos_slider = plt.axes([0.2, 0.05, 0.6, 0.05])
-    pos_slider = Slider(
-            ax = ax_pos_slider,
-            label = 'position',
-            valmin = 0,
-            valmax = int((T+1)*(T+2)/2-1),
-            valinit = pos_current,
-            valstep = 1
-            )
+    ax_pos_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
+    pos_slider = Slider(ax = ax_pos_slider, label = 'position', valmin = 1, valmax = int((T+1)*(T+2)/2), valinit = pos_current, valstep = 1)
+
+    ax_sym_slider = plt.axes([0.2, 0.05, 0.6, 0.05])
+    sym_slider = Slider(ax = ax_sym_slider, label = 'sym', valmin = 1, valmax = len(symmetrie_dict[pos_current]), valinit = sym_current, valstep = 1)
     
     C_slider.valtext.set_text(C_arr[C_current])
 
@@ -269,22 +292,31 @@ def LDOS():
 
     def C_update(val):
 
+        nonlocal sym_dots
+        nonlocal pos_dot
+
         i = int(C_slider.val)
         pos  = int(pos_slider.val)
+
+        sym_slider.valmax = len(symmetrie_dict[pos])
+        sym_slider.ax.set_xlim(sym_slider.valmin, sym_slider.valmax)
+        sym_slider.eventson = False
+        sym_slider.set_val(1)
+        sym_slider.eventson = True
 
         for container in ax.containers:
             container.remove()
         for col in ax.collections:
             col.remove()
         axins.clear()
-        axins.scatter_artist.set_visible(False)
-        
+       
         plot_grid(i)
-        ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos, :], ec = 'black', fc = 'green')
+        ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos-1, :], ec = 'black', fc = 'green')
         ax.vlines(np.mean(mu_arr_dict[C_arr[i]]), 0, 0.05, color = "red")
-        axins.scatter_artist = axins.scatter(grid_dict[C_arr[i]][pos, 0], grid_dict[C_arr[i]][pos, 1], s=20, color='red')
-        axins.grid()
 
+        sym_dots = axins.scatter([grid_dict[C_arr[i]][j-1, 0] for j in symmetrie_dict[pos]], [grid_dict[C_arr[i]][j-1, 1] for j in symmetrie_dict[pos]], s = 20, color = "blue", zorder = 2)
+        pos_dot = axins.scatter(grid_dict[C_arr[i]][pos-1, 0], grid_dict[C_arr[i]][pos-1, 1], s=20, color='red', zorder = 3)
+        
         ax.set_xlim(np.min(eival_dict[C_arr[i]]) - 0.1 , np.max(eival_dict[C_arr[i]]) + 0.1)
         C_slider.valtext.set_text(C_arr[i])
 
@@ -292,23 +324,47 @@ def LDOS():
 
         i = int(C_slider.val)
         pos  = int(pos_slider.val)
+
+        sym_slider.valmax = len(symmetrie_dict[pos])
+        sym_slider.ax.set_xlim(sym_slider.valmin, sym_slider.valmax)        
+        sym_slider.eventson = False
+        sym_slider.set_val(1)
+        sym_slider.eventson = True
+
+
+        for container in ax.containers:
+            container.remove()
+        for col in ax.collections:
+            col.remove()
+
+        ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos-1, :], ec = 'black', fc = 'green')
+        ax.vlines(np.mean(mu_arr_dict[C_arr[i]]), 0, 0.05, color = "red")
+        pos_dot.set_offsets([grid_dict[C_arr[i]][pos-1, 0], grid_dict[C_arr[i]][pos-1, 1]])
+        sym_dots.set_offsets([(grid_dict[C_arr[i]][j-1, 0], grid_dict[C_arr[i]][j-1, 1]) for j in symmetrie_dict[pos]])
+
+        ax.set_xlim(np.min(eival_dict[C_arr[i]]) - 0.1 , np.max(eival_dict[C_arr[i]]) + 0.1)
+
+    def sym_update(val):
+
+        i = int(C_slider.val)
+        pos  = int(pos_slider.val)
+        sym = int(sym_slider.val)
+
        
         for container in ax.containers:
             container.remove()
         for col in ax.collections:
             col.remove()
-        axins.scatter_artist.set_visible(False)
 
-        ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos, :], ec = 'black', fc = 'green')
+        ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][symmetrie_dict[pos][sym-1]-1, :], ec = 'black', fc = 'green')
         ax.vlines(np.mean(mu_arr_dict[C_arr[i]]), 0, 0.05, color = "red")
-        axins.scatter_artist = axins.scatter(grid_dict[C_arr[i]][pos, 0], grid_dict[C_arr[i]][pos, 1], s=20, color='red')
-        axins.grid()
+        pos_dot.set_offsets([grid_dict[C_arr[i]][symmetrie_dict[pos][sym-1]-1, 0], grid_dict[C_arr[i]][symmetrie_dict[pos][sym-1]-1, 1]])
 
         ax.set_xlim(np.min(eival_dict[C_arr[i]]) - 0.1 , np.max(eival_dict[C_arr[i]]) + 0.1)
 
-
     C_slider.on_changed(C_update)
     pos_slider.on_changed(pos_update)
+    sym_slider.on_changed(sym_update)
 
     plt.show()
 
@@ -478,7 +534,6 @@ def real_space(mode):
             valstep = 1
             )
 
-
     C_slider.valtext.set_text(C_arr[C_current])
 
     ax.set_title(f"{project}", size = "x-large")
@@ -606,24 +661,11 @@ def localization_real_space():
     ax[1].axvline(eival_dict[C_arr[C_current]][eigen_current], color = "red", zorder = 3)
 
     ax_C_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
-    C_slider = Slider(
-            ax = ax_C_slider,
-            label = 'C',
-            valmin = 0,
-            valmax = len(C_arr)-1,
-            valinit = C_current,
-            valstep = 1
-            )
+    C_slider = Slider(ax = ax_C_slider, label = 'C', valmin = 0, valmax = len(C_arr)-1, valinit = C_current, valstep = 1)
 
     ax_eigen_slider = plt.axes([0.2, 0.05, 0.6, 0.05])
-    eigen_slider = Slider(
-            ax = ax_eigen_slider,
-            label = 'E',
-            valmin = 0,
-            valmax = int((T+1)*(T+2)/2-1),
-            valinit = eigen_current,
-            valstep = 1
-            )
+    eigen_slider = Slider(ax = ax_eigen_slider, label = 'E', valmin = 0, valmax = int((T+1)*(T+2)/2-1), valinit = eigen_current, valstep = 1)
+
 
     C_slider.valtext.set_text(C_arr[C_current])
  
@@ -788,9 +830,9 @@ if __name__ == "__main__":
     mode = 'flux' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2, '-pi/2' shows derivation from -pi/2
     
     # DOS()
-    LDOS()
+    # LDOS()
     # real_space(mode)
-    # localization_real_space()
+    localization_real_space()
     # J_t()
 
 

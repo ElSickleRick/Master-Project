@@ -385,6 +385,44 @@ class post_analysis:
         cbar.set_ticklabels([f"$-\pi$", f"$-\pi / 2$", "0", f"$\pi / 2$", f"$\pi$"])
         ax.grid()
 
+    def mu_real_space_plot(self):
+        
+        variant = "chi" # if "chi" -> abs(chi) ist plotted, if "t" -> hopping amplitude is plotted
+        
+        mu_min = -1.5
+        mu_max = 1.5
+
+        c_max = self.T+1
+        grid = np.empty((0,2)) # initialize with one site 
+        
+        fig, ax = plt.subplots()
+
+        for i in range(1, int((self.T+1)*(self.T+2)/2+1)):
+            
+            cords = np.array([self.strain_cord_dict[i][1]])
+            grid = np.append(grid, cords, axis = 0)
+
+
+
+        for link in self.pop_link_dict:
+
+            s, e, J, chi = self.pop_link_dict[link]
+
+            x = [grid[s-1][0], grid[e-1][0]]
+            y = [grid[s-1][1], grid[e-1][1]]
+            ax.plot(x, y, c = 'k', linewidth = 1, zorder = 2)
+
+        cmap = clr.LinearSegmentedColormap.from_list("blue-white-red", ["blue", "white",  "red"])
+        norm = clr.Normalize(vmin = mu_min, vmax = mu_max)
+        
+        ax.scatter(grid[:, 0], grid[:, 1], s = 30, c = cmap(norm(self.mu_arr)), zorder = 3)
+ 
+        sm = cm.ScalarMappable(norm = norm, cmap = cmap)
+        sm.set_array([])
+        cbar = plt.colorbar(sm, ax = ax) 
+        cbar.set_ticks([-1.5, 0, 1.5])
+        cbar.set_ticklabels([f"-1.5", "0", "1,5"])
+        ax.grid()
 
 
     def Chi_path_plot(self):
