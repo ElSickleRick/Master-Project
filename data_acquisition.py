@@ -133,7 +133,7 @@ class data_miner:
         
         chi_init, elas_variant, chi_noise_scale, mu_noise_scale = init_paras
 
-        C_arr= [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65]
+        C_arr= [0, -0.05, -0.1, -0.15, -0.2, -0.25, -0.3, -0.35, -0.4, -0.45, -0.5, -0.55, -0.6, -0.65]
 
         for i in range(0, len(C_arr)):
             

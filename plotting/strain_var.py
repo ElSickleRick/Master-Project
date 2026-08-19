@@ -128,7 +128,7 @@ def DOS():
 
 def LDOS():
 
-    bins = 65 # 85
+    bins = 120 #85 # 65
 
     fig, ax  = plt.subplots()
     axins = inset_axes(ax, width="30%", height="30%", loc="upper right")
@@ -258,7 +258,7 @@ def LDOS():
     sym_current = 1
     
     ax.hist(eival_dict[C_current], bins = bins, weights = eivec_avs_dict[C_current][pos_current-1, :], ec = 'black', fc = 'green')
-    ax.vlines(np.mean(mu_arr_dict[C_arr[C_current]]), 0, 0.05, color = "red")
+    ax.vlines(mu_arr_dict[C_arr[C_current]][pos_current- 1], 0, 0.05, color = "red")
     plot_grid(C_current)
 
     sym_dots = axins.scatter([grid_dict[C_arr[C_current]][i-1, 0] for i in symmetrie_dict[pos_current]], [grid_dict[C_arr[C_current]][i-1, 1] for i in symmetrie_dict[pos_current]], s = 20, color = "blue", zorder = 2)
@@ -282,7 +282,7 @@ def LDOS():
     ax.set_title(f"LDOS of {project}", size = "x-large")
  
     params = (
-    rf"T = {T}" "\n"
+    rf"T = {T} ({int((T+1)*(T+2)/2)} sites)" "\n"
     rf"$\kappa$ = {kappa}" "\n"
     rf"$\beta$ = {beta}" "\n"
     rf"me-coupling = {mag_elas}"
@@ -312,7 +312,7 @@ def LDOS():
        
         plot_grid(i)
         ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos-1, :], ec = 'black', fc = 'green')
-        ax.vlines(np.mean(mu_arr_dict[C_arr[i]]), 0, 0.05, color = "red")
+        ax.vlines(mu_arr_dict[C_arr[i]][pos-1], 0, 0.05, color = "red")
 
         sym_dots = axins.scatter([grid_dict[C_arr[i]][j-1, 0] for j in symmetrie_dict[pos]], [grid_dict[C_arr[i]][j-1, 1] for j in symmetrie_dict[pos]], s = 20, color = "blue", zorder = 2)
         pos_dot = axins.scatter(grid_dict[C_arr[i]][pos-1, 0], grid_dict[C_arr[i]][pos-1, 1], s=20, color='red', zorder = 3)
@@ -338,10 +338,9 @@ def LDOS():
             col.remove()
 
         ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][pos-1, :], ec = 'black', fc = 'green')
-        ax.vlines(np.mean(mu_arr_dict[C_arr[i]]), 0, 0.05, color = "red")
+        ax.vlines(mu_arr_dict[C_arr[i]][pos-1], 0, 0.05, color = "red")
         pos_dot.set_offsets([grid_dict[C_arr[i]][pos-1, 0], grid_dict[C_arr[i]][pos-1, 1]])
         sym_dots.set_offsets([(grid_dict[C_arr[i]][j-1, 0], grid_dict[C_arr[i]][j-1, 1]) for j in symmetrie_dict[pos]])
-
         ax.set_xlim(np.min(eival_dict[C_arr[i]]) - 0.1 , np.max(eival_dict[C_arr[i]]) + 0.1)
 
     def sym_update(val):
@@ -357,7 +356,7 @@ def LDOS():
             col.remove()
 
         ax.hist(eival_dict[C_arr[i]], bins = bins, weights = eivec_avs_dict[C_arr[i]][symmetrie_dict[pos][sym-1]-1, :], ec = 'black', fc = 'green')
-        ax.vlines(np.mean(mu_arr_dict[C_arr[i]]), 0, 0.05, color = "red")
+        ax.vlines(mu_arr_dict[C_arr[i]][pos-1], 0, 0.05, color = "red")
         pos_dot.set_offsets([grid_dict[C_arr[i]][symmetrie_dict[pos][sym-1]-1, 0], grid_dict[C_arr[i]][symmetrie_dict[pos][sym-1]-1, 1]])
 
         ax.set_xlim(np.min(eival_dict[C_arr[i]]) - 0.1 , np.max(eival_dict[C_arr[i]]) + 0.1)
@@ -813,6 +812,151 @@ def J_t():
     C_slider.on_changed(C_update)
     plt.show()
 
+def local_chemical_potential():
+
+    mu_min = 0
+    mu_max = 2
+
+    cmap = clr.LinearSegmentedColormap.from_list("white_red_blac", [(0, "white"), (0.33, "yellow"), (0.66, "orange"), (1, "red")],  gamma=0.6)
+    norm = clr.Normalize(vmin=mu_min, vmax=mu_max)
+
+    fig, ax  = plt.subplots()  
+    plt.subplots_adjust(bottom=0.25)
+
+    for project in projects:
+        project_path = os.path.join(path_head, project)
+       
+        C_arr = []
+        mu_dict = {}
+        strain_cord_dict_dict = {}
+        grid_dict = {}
+
+        for path in os.listdir(project_path):
+
+            size_path = os.path.join(project_path, path)
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)  
+
+            C = info["C"]
+            C_arr.append(C)
+
+        C_arr = sort(C_arr)
+
+        
+        for C in C_arr:
+
+            size_path = os.path.join(project_path, f"C = {C}")
+
+            with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
+                pop_link_dict = pickle.load(f)
+
+            with open(os.path.join(size_path, "mu_arr.pkl"), "rb") as f:
+                mu_arr = pickle.load(f)
+
+            with open(os.path.join(size_path, "eival.pkl"), "rb") as f:
+                eival = pickle.load(f)
+
+            with open(os.path.join(size_path, "eivec.pkl"), "rb") as f:
+                eivec = pickle.load(f)
+
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)
+
+            T = info["T"]
+            kappa = info["kappa"]
+            beta = info["beta"]
+            C = info["C"]
+            mag_elas = info["mag_elas"]
+            theta = info["theta"]
+
+            mu_dict.update({ C : mu_arr})
+
+            with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
+                miscellaneous = pickle.load(f)
+            seed = miscellaneous["seed"]
+            chi_init, elas_variant, chi_noise_scale, mu_noise_scale = miscellaneous["init paras"]
+        
+            rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
+            sys_init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant)
+            strain_cord_dict = sys_init.strain_cord_gen()
+
+            i = 0
+            if i == 0:
+                ul_dict = sys_init.link_dict_gen()
+                i += 1
+
+            grid = np.empty((0,2))
+
+            for i in range(1, int((T+1)*(T+2)/2+1)):
+            
+                cords = np.array([strain_cord_dict[i][1]])
+                grid = np.append(grid, cords, axis = 0)
+
+            grid_dict.update({C : grid})
+
+
+    def mu_plot(i): 
+        for link in ul_dict:
+
+            s, e = ul_dict[link]
+
+            x = [grid_dict[C_arr[i]][s-1][0],grid_dict[C_arr[i]][e-1][0]]
+            y = [grid_dict[C_arr[i]][s-1][1], grid_dict[C_arr[i]][e-1][1]]
+
+            ax.plot(x, y, c = "grey", linewidth = 1, zorder = 1)
+
+        ax.scatter(grid_dict[C_arr[i]][:, 0], grid_dict[C_arr[i]][:, 1], color = cmap(norm(mu_dict[C_arr[i]])))
+
+
+    
+
+    C_current = 0
+    mu_plot(C_current)
+
+    sm = cm.ScalarMappable(norm = norm, cmap = cmap)
+    sm.set_array([])
+    cbar = plt.colorbar(sm, ax = ax) 
+
+    ax_C_slider = plt.axes([0.2, 0.1, 0.6, 0.05])
+    C_slider = Slider(
+            ax = ax_C_slider,
+            label = 'C',
+            valmin = 0,
+            valmax = len(C_arr)-1,
+            valinit = C_current,
+            valstep = 1
+            )
+
+    C_slider.valtext.set_text(C_arr[C_current])
+
+    ax.set_title(f"{project}", size = "x-large")
+ 
+    params = (
+    rf"T = {T}" "\n"
+    rf"$\kappa$ = {kappa}" "\n"
+    rf"$\beta$ = {beta}" "\n"
+    rf"me-coupling = {mag_elas}"
+    )
+
+    ax.text(0.02, 0.98, params,transform=ax.transAxes,va="top",ha="left",bbox=dict(boxstyle="round", facecolor="white", alpha=0.8))
+
+    def C_update(value):
+        i = int(C_slider.val)
+        ax.clear()
+        mu_plot(i)
+
+
+        
+        ax.text(0.02, 0.98, params,transform=ax.transAxes,va="top",ha="left",bbox=dict(boxstyle="round", facecolor="white", alpha=0.8))
+        C_slider.valtext.set_text(C_arr[i])
+        ax.set_title(f"{project}", size = "x-large")
+        return
+
+          
+    C_slider.on_changed(C_update)
+    plt.show()
+
+
 
 
 if __name__ == "__main__":
@@ -826,13 +970,17 @@ if __name__ == "__main__":
             # 'T=47_exp_pi_half_1108_01'  : "T=47",
             # 'T=45_exp_up_1308_01' : "T=45, exp, up",
             'T=65_exp_up_1308_01' : "T=65, exp, up",            
+            # 'T=65_lin_up_1708_01' : "T=65, lin, up",
+            # 'T=45_exp_rot_pi_half_1708_01' : "T=45 exp, rot, pi/2" 
+            # 'T=65_exp_rot_up_1708_01' : "T=65 exp, rot, up" # bad convergence!!
             }
-    mode = 'flux' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2, '-pi/2' shows derivation from -pi/2
+    mode = 'pi/2' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2, '-pi/2' shows derivation from -pi/2
     
     # DOS()
     # LDOS()
     # real_space(mode)
-    localization_real_space()
+    # localization_real_space()
     # J_t()
+    local_chemical_potential()
 
 

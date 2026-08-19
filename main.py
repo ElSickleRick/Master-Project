@@ -31,8 +31,8 @@ chi_noise_scale = 0.1 #0.025 # scale of the noise applied to the MF parameters r
 mu_noise_scale = 0.1 #0.025 # sclae of noise applied to chemical potentinals relative to their absolute value
 
 'convergence parameters:'
-mu_step_base = 0.5 #1.1 #0.5   # mean step size of the chemical potential 
-mu_rm_scale = 0.1 #0.3 # 0.3 # maximum size of fluctuations in both directions around the means step for mu (so interval is mu_step_base +- mu_rm_scale)
+mu_step_base = 0.5 # 1.1 #0.5   # mean step size of the chemical potential 
+mu_rm_scale = 0.1 # 0.3 # maximum size of fluctuations in both directions around the means step for mu (so interval is mu_step_base +- mu_rm_scale)
 chi_rm_scale = 0.3 # 0.3 # maximum value of random mixing parameter for MF-bond-parameters
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 (usually 0.0001)
 chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-bond-parameter) (usually 0.0001)
@@ -81,7 +81,7 @@ print(free_energy_hist[-1])
 
 """  
 
-project_name  = "T=65_exp_up_1308_01"
+project_name  = "T=65_exp_rot_up_1808_01"
 data_miner.strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
 
 """ 
