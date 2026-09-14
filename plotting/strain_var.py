@@ -560,7 +560,99 @@ def real_space(mode):
     plt.show()
 
 
+def particle_flux_real_space():
 
+    fig, ax  = plt.subplots()
+    ax.set_aspect('equal', adjustable='box')
+    plt.subplots_adjust(bottom=0.25)
+
+    for project in projects:
+        project_path = os.path.join(path_head, project)
+    
+        C_arr = []
+        grid_dict = {}
+        pop_link_dict_dict = {}
+
+        for path in os.listdir(project_path):
+
+            size_path = os.path.join(project_path, path)
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)  
+
+            C = info["C"]
+            C_arr.append(C)
+
+        C_arr = sort(C_arr)
+
+        
+        for C in C_arr:
+
+            size_path = os.path.join(project_path, f"C = {C}")
+
+            with open(os.path.join(size_path, "pop_link_dict.pkl"), "rb") as f:
+                pop_link_dict = pickle.load(f)
+
+            with open(os.path.join(size_path, "mu_arr.pkl"), "rb") as f:
+                mu_arr = pickle.load(f)
+
+            with open(os.path.join(size_path, "eival.pkl"), "rb") as f:
+                eival = pickle.load(f)
+
+            with open(os.path.join(size_path, "eivec.pkl"), "rb") as f:
+                eivec = pickle.load(f)
+
+            with open(os.path.join(size_path, "info.pkl"), "rb") as f:
+                info = pickle.load(f)
+
+            T = info["T"]
+            kappa = info["kappa"]
+            beta = info["beta"]
+            C = info["C"]
+            mag_elas = info["mag_elas"]
+            theta = info["theta"]
+
+            with open(os.path.join(size_path, "miscellaneous.pkl"), "rb") as f:
+                miscellaneous = pickle.load(f)
+            seed = miscellaneous["seed"]
+            chi_init, elas_variant, chi_noise_scale, mu_noise_scale = miscellaneous["init paras"]
+        
+            rng = np.random.default_rng(seed) # This is possably questionable but the functions I want to call actually does not need rng       
+            sys_init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant)
+            strain_cord_dict = sys_init.strain_cord_gen()
+            plaqu_dict = sys_init.plaqu_dict_gen()
+            ul_dict = sys_init.link_dict_gen()
+
+            grid = np.empty((0,2))
+
+            for i in range(1, int((T+1)*(T+2)/2+1)):
+            
+                cords = np.array([strain_cord_dict[i][1]])
+                grid = np.append(grid, cords, axis = 0)
+
+
+            grid_dict.update({C : grid})
+            pop_link_dict_dict.update({C : pop_link_dict})
+
+    def real_space_plot(i):
+
+        variant = "chi" # if "chi" -> abs(chi) ist plotted, if "t" -> hopping amplitude is plotted
+
+        lw_min = 0
+        lw_max = 8
+        t_min = 0
+        t_max = 5
+        chi_abs_min = 0
+        chi_abs_max = 0.5
+
+        for link in pop_link_dict_dict[C_arr[i]]:
+
+            s, e, J, chi = pop_link_dict_dict[C_arr[i]][link]
+
+            x = [grid_dict[C_arr[i]][s-1][0], grid_dict[C_arr[i]][e-1][0]]
+            y = [grid_dict[C_arr[i]][s-1][1], grid_dict[C_arr[i]][e-1][1]]
+
+            if np.imag(chi_abs < 0.001):
+                ax.plot(x, y, c = 'grey', linestyle = 'dotted', zorder = 3)
 
 
 def localization_real_space():
@@ -955,6 +1047,7 @@ def local_chemical_potential():
           
     C_slider.on_changed(C_update)
     plt.show()
+
 
 
 

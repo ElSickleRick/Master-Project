@@ -10,34 +10,34 @@ from methods import methods
 from analysis import pre_analysis, post_analysis
 from data_acquisition import save_data, data_miner
 
-# seed = np.random.SeedSequence().entropy # pull rng initialization seed from system entropy
-seed = 13082203210817060306 # fixed rng initializtaion seed 
+seed = np.random.SeedSequence().entropy # pull rng initialization seed from system entropy
+# seed = 13082203210817060306 # fixed rng initializtaion seed 
 rng = np.random.default_rng(seed)
 
 # look up: T | # sites:   13|105  21|253  30|496  37|741  43|990  62|2016
 
 'Model parameters:'
-T  = 65 # # triangles in base
+T = 44 # # triangles in base
 kappa = 10 # biquadratic exchange constant
-beta = 200 # 200 # inverse temperatur
+beta = 100 # 200 # inverse temperatur
 C = 0 # 0.5 # strain strength x linear sytem size 
 mag_elas = 1 # 2 # magneto-elastic coupling
 theta = 0 # rotation angle of the strain pattern (np.pi/2)
 
 'initialization parameters'
-chi_init = "up" # variants for initializing chi, for options see system_init
+chi_init = "complex" # variants for initializing chi, for options see system_init
 elas_variant = "exp"  # "linear" or "exp"
-chi_noise_scale = 0.1 #0.025 # scale of the noise applied to the MF parameters relative to their real/imaginary part
-mu_noise_scale = 0.1 #0.025 # sclae of noise applied to chemical potentinals relative to their absolute value
+chi_noise_scale = 0 #0.025 # scale of the noise applied to the MF parameters relative to their real/imaginary part
+mu_noise_scale = 0 #0.025 # sclae of noise applied to chemical potentinals relative to their absolute value
 
 'convergence parameters:'
-mu_step_base = 0.5 # 1.1 #0.5   # mean step size of the chemical potential 
-mu_rm_scale = 0.1 # 0.3 # maximum size of fluctuations in both directions around the means step for mu (so interval is mu_step_base +- mu_rm_scale)
+mu_step_base = 0.5 # 1.1 # 0.5   # mean step size of the chemical potential 
+mu_rm_scale = 0.3 # 0.3 # 0.1 # maximum size of fluctuations in both directions around the means step for mu (so interval is mu_step_base +- mu_rm_scale)
 chi_rm_scale = 0.3 # 0.3 # maximum value of random mixing parameter for MF-bond-parameters
 N_dif_bd = 0.0001 # maximum tolerance for deviation of local particle number from 1 (usually 0.0001)
 chi_dif_bd = 0.0001 # bound for convergence of absolute value of Chi (MF-bond-parameter) (usually 0.0001)
 max_iter_cond = True # if True, self consistency loop will terminate prematurely after a certain number of steps
-sc_iter_max = 500 # maximum number of iterations before the self-consistency loop will terminate prematurely (requires max_iter_cond = True)
+sc_iter_max = 2500 # maximum number of iterations before the self-consistency loop will terminate prematurely (requires max_iter_cond = True)
 
 init_paras = [chi_init, elas_variant, chi_noise_scale, mu_noise_scale]
 iter_paras = [max_iter_cond, sc_iter_max]
@@ -63,7 +63,7 @@ target_con = True
 target = -np.pi/2
 data_miner.cond_size_iter(seed, rng, beta, kappa, project_name, chi_init, iter_paras, pre_ana_paras, convergence_paras, target_con, target)
 
-""" """ 
+""" 
 
 init = system_init(T, kappa, rng, C, mag_elas, theta, elas_variant)
 link_dict, strain_cord_dict, plaqu_dict, mu_arr, pop_link_dict = init.init_master(chi_init)
@@ -81,10 +81,10 @@ print(free_energy_hist[-1])
 
 """  
 
-project_name  = "T=65_exp_rot_up_1808_01"
+project_name  = "T=45_exp_complex_2408_01"
 data_miner.strain_iter(seed, rng, T, kappa, beta, mag_elas, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
 
-""" 
+""" """
 
 project_name = "T=45_1008_01"
 data_miner.strain_elas_grid(seed, rng, T, kappa, beta, theta, project_name, init_paras, iter_paras, pre_ana_paras, convergence_paras)
