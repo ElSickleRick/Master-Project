@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 
-grid_size = 100 # in one direction
+grid_size = 250 # in one direction
 k_min = -np.pi
 k_max = np.pi
 
@@ -60,13 +60,25 @@ for i in range(0 , grid_size):
 
 
 fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+# ax = fig.add_subplot(111, projection='3d')
 
 
 colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple']
 
-for i in [0, 1, 2, 3, 4, 5]:
-    ax.plot_wireframe(KX, KY, bands[i], color = colors[i])
+# for i in [2,3]:
+    # ax.plot_wireframe(KX, KY, bands[i], color = colors[i])
+
+ax = fig.add_subplot(111)
+c = ax.pcolormesh(KX, KY, bands[3])
+fig.colorbar(c, ax=ax)
+
+ax.grid()
+
+ax.set_xticks(np.pi*np.array([-1, -0.25, 0, 0.25, 1]))
+ax.set_xticklabels([r'$-\pi$', r'$-\frac{\pi}{4}$', r'0', r'$\frac{\pi}{4}$', r'$\pi$'], size='xx-large')
+
+ax.set_yticks(np.pi*np.array([-1, -0.25, 0, 0.25, 1])/np.sqrt(3))
+ax.set_yticklabels([ r'$\frac{\pi}{\sqrt{3}}$', r'$-\frac{\pi}{4\sqrt{3}}$', '0', r'$\frac{\pi}{4\sqrt{3}}$', r'$\frac{\pi}{\sqrt{3}}$'], size = 'xx-large')
 
 plt.show()
 
