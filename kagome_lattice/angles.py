@@ -1,7 +1,7 @@
 import numpy as np
 
-phi = -np.pi/2
-kappa = -np.pi/2
+phi = np.pi/2
+kappa = np.pi/2
 theta = 5*np.pi/12
 # kappa = np.arccos((1-np.sqrt(3))/(1+np.sqrt(3))*(np.cos(phi)/np.sin(phi))
 # theta = np.arccos((1-np.sqrt(3))/(4*np.sin(phi)))
