@@ -1,7 +1,8 @@
 import sympy as sp 
 
-K = sp.Matrix([sp.pi/4, sp.pi/(4*sp.sqrt(3))])
+# K = sp.Matrix([sp.pi/4, sp.pi/(4*sp.sqrt(3))])
 # K = sp.Matrix([sp.pi/12, -sp.pi/(4*sp.sqrt(3))])
+K = sp.Matrix([5*sp.pi/12, sp.sqrt(3)*sp.pi/4])
 
 delta1 = sp.Matrix([1, 0])
 delta2 = sp.Matrix([sp.Rational(1,2), sp.sqrt(3)/2])
@@ -56,7 +57,7 @@ dH0 = sp.I*sp.Matrix([[0,       E2*Kud2, ME3*Kud3, 0, -ME2*Kud2, E3*Kud3],
 dH1 = -strainbeta*sp.Matrix([[0, E2*dud2, -ME3*dud3, 0, ME2*dud2, E3*dud3],
                              [ME2*dud2, 0, sp.I*2*sp.sin(K.dot(delta1))*dud1, E2*dud2, 0, 0],
                              [-E3*dud3, -sp.I*2*sp.sin(K.dot(delta1))*dud1, 0, ME3*dud3, 0, 0],
-                             [0, ME2*dud2, dud3, 0, E2*dud2, ME3*dud3],
+                             [0, ME2*dud2, E3*dud3, 0, E2*dud2, ME3*dud3],
                              [E2*dud2, 0, 0, ME2*dud2, 0, 2*sp.cos(K.dot(delta1))*dud1],
                              [ME3*dud3, 0, 0, E3*dud3, 2*sp.cos(K.dot(delta1))*dud1, 0]])
 
@@ -71,10 +72,13 @@ v6 = sp.Matrix([1+sp.sqrt(3)+sp.I*(1-sp.sqrt(3)), -sp.sqrt(2)+sp.sqrt(6), 0, 1+s
 v4t = sp.Matrix([(1+sp.sqrt(3))/sp.sqrt(2)-sp.I*sp.sqrt(2)*(2+sp.sqrt(3)), 2+sp.sqrt(3), sp.I*sp.sqrt(2)*(2+sp.sqrt(3)), (1+sp.sqrt(3))/sp.sqrt(2) + sp.I*sp.sqrt(2)*(2+sp.sqrt(3)), 1, 0])/(sp.sqrt(6)*sp.sqrt(5*sp.sqrt(3)+9))
 v5t = sp.Matrix([-sp.Rational(1, 2), -sp.sqrt(3)*(1+sp.sqrt(3))/(2*sp.sqrt(2)), sp.I*(1+sp.sqrt(3))/2, -sp.Rational(1, 2), (1+sp.sqrt(3))/(2*sp.sqrt(2)), 1])/sp.sqrt(3*sp.sqrt(3)*(1+sp.sqrt(3))/2)
 
-k1 = v3
-k2 = v4
+v4z = sp.Matrix([(1-sp.sqrt(3))/sp.sqrt(2) -sp.I*sp.sqrt(2)*(2-sp.sqrt(3)), 2-sp.sqrt(3), sp.I*sp.sqrt(2)*(sp.sqrt(3)-2), (1-sp.sqrt(3))/sp.sqrt(2)+sp.I*sp.sqrt(2)*(2-sp.sqrt(3)), 1, 0])/sp.sqrt(6*(9-5*sp.sqrt(3)))
+v5z = sp.Matrix([sp.Rational(1,2), -sp.sqrt(3)*(1-sp.sqrt(3))/(2*sp.sqrt(2)), sp.I*(1-sp.sqrt(3))/2, sp.Rational(1,2), -(1-sp.sqrt(3))/(2*sp.sqrt(2)), 1])/sp.sqrt((3*(3-sp.sqrt(3)))/2)
 
-phi = -sp.pi/2
+k1 = v4z
+k2 = v5z
+
+phi = sp.pi/2
 kappa = -sp.pi/2
 theta = 5*sp.pi/12
 
@@ -90,49 +94,36 @@ def master_simp(a):
     return sp.simplify(sp.sqrtdenest(sp.simplify(sp.expand_complex(a))))
 
 
+def minor_simp(a):
+    return sp.simplify(sp.expand_complex(sp.simplify(sp.sqrtdenest(a))))
 
-#print(H0.eigenvects())
-# print(sp.simplify(master_simp(w1.H.dot(H1*w1))))
-# print(sp.simplify(sp.expand_complex(sp.sqrtdenest(w2.H.dot(H1*w2)))))
+j1 = w1
+j2 = w2
 
-dH111 = master_simp(w1.H.dot(dH1*w1))
-redH111 = sp.factor(sp.re(dH111).expand())
-imdH111 = sp.factor(sp.im(dH111).expand())
+A = dH1
 
+A11 = master_simp(j1.H.dot(A*j1))
+reA11 = sp.factor(sp.re(A11).expand())
+imA11 = sp.factor(sp.im(A11).expand())
 
-dH122 = master_simp(w2.H.dot(dH1*w2))
-redH122 = sp.factor(sp.re(dH122).expand())
-imdH122 = sp.factor(sp.im(dH122).expand())
+print(reA11 + sp.I*imA11)
 
+A22 = master_simp(j2.H.dot(A*j2))
+reA22 = sp.factor(sp.re(A22).expand())
+imA22 = sp.factor(sp.im(A22).expand())
 
-#dH112 = master_simp(w1.H.dot(dH1*w2))
-#redH112 = sp.factor(sp.re(dH112).expand())
-#imdH112 = sp.factor(sp.im(dH112).expand())
+print(reA22 + sp.I*imA22)
 
+A12 = master_simp(j1.H.dot(A*j2))
+reA12 = sp.factor(sp.re(A12).expand())
+imA12 = sp.factor(sp.im(A12).expand())
 
-#dH121 = master_simp(w2.H.dot(dH1*w1))
-#redH121 = sp.factor(sp.re(dH121).expand())
-#imdH121 = sp.factor(sp.im(dH121).expand())
+print(reA12 + sp.I*imA12)
 
-print(redH111 + sp.I*imdH111)
-print(redH122 + sp.I*imdH122)
-#print(redH112 + sp.I*imdH112)
-#print(redH121 + sp.I*imdH121)
+A21 = master_simp(j2.H.dot(A*j1))
+reA21 = sp.factor(sp.re(A21).expand())
+imA21 = sp.factor(sp.im(A21).expand())
 
-#print(sp.simplify(sp.sqrtdenest(sp.simplify(sp.expand_complex(w2.H.dot(dH1*w2))))))
-#print(sp.simplify(sp.sqrtdenest(sp.simplify(sp.expand_complex(w1.H.dot(dH1*w2))))))
-#print(sp.simplify(sp.sqrtdenest(sp.simplify(sp.expand_complex(w2.H.dot(dH1*w1))))))
+print(reA21 + sp.I*imA21)
 
-#print(spv4t - v4t).collect(sp.simplify(master_simp(w5.H.dot((dH0)*w5))), [px, py]))
-
-#print(sp.collect(sp.simplify(master_simp(w6.H.dot((dH0)*w6))), [px, py]))
-#print(sp.collect(sp.simplify(master_simp(w5.H.dot((dH0)*w6))), [px, py]))
-#print(sp.collect(sp.simplify(sp.expand_complex(w6.H.dot((dH0)*w5))), [px, py]))
-
-
-# vects = sp.GramSchmidt(H0.eigenvects()[1][2], False)
-
-
-#for i in [0,1]:
-    #print(vects[i].applyfunc(sp.simplify).applyfunc(master_simp))
  
