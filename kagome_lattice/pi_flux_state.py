@@ -1,8 +1,8 @@
 import sympy as sp 
 
-# K = sp.Matrix([sp.pi/4, sp.pi/(4*sp.sqrt(3))])
-# K = sp.Matrix([sp.pi/12, -sp.pi/(4*sp.sqrt(3))])
-K = sp.Matrix([5*sp.pi/12, sp.sqrt(3)*sp.pi/4])
+K = sp.Matrix([sp.pi/4, sp.pi/(4*sp.sqrt(3))]) # F
+# K = sp.Matrix([sp.pi/12, -sp.pi/(4*sp.sqrt(3))]) # C
+# K = sp.Matrix([5*sp.pi/12, -sp.sqrt(3)*sp.pi/12]) # E
 
 delta1 = sp.Matrix([1, 0])
 delta2 = sp.Matrix([sp.Rational(1,2), sp.sqrt(3)/2])
@@ -69,18 +69,22 @@ v4 = sp.Matrix([3-2*sp.sqrt(3)+sp.I*(-2+sp.sqrt(3)), 0, sp.I*(1-sp.sqrt(3)), 3-2
 v5 = sp.Matrix([-1/sp.sqrt(2) - sp.I*(2+sp.sqrt(3))/sp.sqrt(2), -2-sp.sqrt(3), sp.I*sp.sqrt(2)*(1+sp.sqrt(3)), -1/sp.sqrt(2) +sp.I*(2+sp.sqrt(3))/sp.sqrt(2), 1, 0])/(sp.sqrt(6)+3*sp.sqrt(2))
 v6 = sp.Matrix([1+sp.sqrt(3)+sp.I*(1-sp.sqrt(3)), -sp.sqrt(2)+sp.sqrt(6), 0, 1+sp.sqrt(3) -sp.I*(1-sp.sqrt(3)), sp.sqrt(2)+sp.sqrt(6), 4])/(4*sp.sqrt(3))
 
-v4t = sp.Matrix([(1+sp.sqrt(3))/sp.sqrt(2)-sp.I*sp.sqrt(2)*(2+sp.sqrt(3)), 2+sp.sqrt(3), sp.I*sp.sqrt(2)*(2+sp.sqrt(3)), (1+sp.sqrt(3))/sp.sqrt(2) + sp.I*sp.sqrt(2)*(2+sp.sqrt(3)), 1, 0])/(sp.sqrt(6)*sp.sqrt(5*sp.sqrt(3)+9))
-v5t = sp.Matrix([-sp.Rational(1, 2), -sp.sqrt(3)*(1+sp.sqrt(3))/(2*sp.sqrt(2)), sp.I*(1+sp.sqrt(3))/2, -sp.Rational(1, 2), (1+sp.sqrt(3))/(2*sp.sqrt(2)), 1])/sp.sqrt(3*sp.sqrt(3)*(1+sp.sqrt(3))/2)
+v4c = sp.Matrix([(1+sp.sqrt(3))/sp.sqrt(2)-sp.I*sp.sqrt(2)*(2+sp.sqrt(3)), 2+sp.sqrt(3), sp.I*sp.sqrt(2)*(2+sp.sqrt(3)), (1+sp.sqrt(3))/sp.sqrt(2) + sp.I*sp.sqrt(2)*(2+sp.sqrt(3)), 1, 0])/(sp.sqrt(6)*sp.sqrt(5*sp.sqrt(3)+9))
+v5c = sp.Matrix([-sp.Rational(1, 2), -sp.sqrt(3)*(1+sp.sqrt(3))/(2*sp.sqrt(2)), sp.I*(1+sp.sqrt(3))/2, -sp.Rational(1, 2), (1+sp.sqrt(3))/(2*sp.sqrt(2)), 1])/sp.sqrt(3*sp.sqrt(3)*(1+sp.sqrt(3))/2)
 
-v4z = sp.Matrix([(1-sp.sqrt(3))/sp.sqrt(2) -sp.I*sp.sqrt(2)*(2-sp.sqrt(3)), 2-sp.sqrt(3), sp.I*sp.sqrt(2)*(sp.sqrt(3)-2), (1-sp.sqrt(3))/sp.sqrt(2)+sp.I*sp.sqrt(2)*(2-sp.sqrt(3)), 1, 0])/sp.sqrt(6*(9-5*sp.sqrt(3)))
-v5z = sp.Matrix([sp.Rational(1,2), -sp.sqrt(3)*(1-sp.sqrt(3))/(2*sp.sqrt(2)), sp.I*(1-sp.sqrt(3))/2, sp.Rational(1,2), -(1-sp.sqrt(3))/(2*sp.sqrt(2)), 1])/sp.sqrt((3*(3-sp.sqrt(3)))/2)
+v4elegacy = sp.Matrix([(1-sp.sqrt(3))/sp.sqrt(2) -sp.I*sp.sqrt(2)*(2-sp.sqrt(3)), 2-sp.sqrt(3), sp.I*sp.sqrt(2)*(sp.sqrt(3)-2), (1-sp.sqrt(3))/sp.sqrt(2)+sp.I*sp.sqrt(2)*(2-sp.sqrt(3)), 1, 0])/sp.sqrt(6*(9-5*sp.sqrt(3)))
+v5elegacy = sp.Matrix([sp.Rational(1,2), -sp.sqrt(3)*(1-sp.sqrt(3))/(2*sp.sqrt(2)), sp.I*(1-sp.sqrt(3))/2, sp.Rational(1,2), -(1-sp.sqrt(3))/(2*sp.sqrt(2)), 1])/sp.sqrt((3*(3-sp.sqrt(3)))/2)
 
-k1 = v4z
-k2 = v5z
+
+v4e = sp.Matrix([(2-sp.sqrt(3))*sp.sqrt(2)+sp.I*(1-sp.sqrt(3))/sp.sqrt(2), -2+sp.sqrt(3), sp.I*sp.sqrt(2)*(2-sp.sqrt(3)), sp.sqrt(2)*(2-sp.sqrt(3)) -sp.I*(1-sp.sqrt(3))/sp.sqrt(2), 1, 0])/sp.sqrt(6*(9-5*sp.sqrt(3)))
+v5e = sp.Matrix([sp.I/2, sp.sqrt(3)*(1-sp.sqrt(3))/(2*sp.sqrt(2)), -sp.I*(1-sp.sqrt(3))/2, -sp.I/2, -(1-sp.sqrt(3))/(2*sp.sqrt(2)), 1])/sp.sqrt(3*(3-sp.sqrt(3))/2)
+
+k1 = v5
+k2 = v6
 
 phi = sp.pi/2
 kappa = -sp.pi/2
-theta = 5*sp.pi/12
+theta = sp.pi/12
 
 alpha = sp.cos(phi/2)*sp.exp(sp.I*(theta/2+kappa))
 beta = sp.sin(phi/2)*sp.exp(sp.I*(theta/2))
@@ -89,6 +93,7 @@ gamma = -sp.cos(phi/2)*sp.exp(sp.I*(-theta/2))
 
 w1 = alpha*k1 + beta*k2
 w2 = eta*k1 + gamma*k2
+
 
 def master_simp(a):
     return sp.simplify(sp.sqrtdenest(sp.simplify(sp.expand_complex(a))))
@@ -102,28 +107,31 @@ j2 = w2
 
 A = dH1
 
-A11 = master_simp(j1.H.dot(A*j1))
+
+A11 = minor_simp(j1.H.dot(A*j1))
 reA11 = sp.factor(sp.re(A11).expand())
 imA11 = sp.factor(sp.im(A11).expand())
 
 print(reA11 + sp.I*imA11)
 
-A22 = master_simp(j2.H.dot(A*j2))
+A22 = minor_simp(j2.H.dot(A*j2))
 reA22 = sp.factor(sp.re(A22).expand())
 imA22 = sp.factor(sp.im(A22).expand())
 
 print(reA22 + sp.I*imA22)
 
-A12 = master_simp(j1.H.dot(A*j2))
+A12 = minor_simp(j1.H.dot(A*j2))
 reA12 = sp.factor(sp.re(A12).expand())
 imA12 = sp.factor(sp.im(A12).expand())
 
 print(reA12 + sp.I*imA12)
 
-A21 = master_simp(j2.H.dot(A*j1))
+A21 = minor_simp(j2.H.dot(A*j1))
 reA21 = sp.factor(sp.re(A21).expand())
 imA21 = sp.factor(sp.im(A21).expand())
 
 print(reA21 + sp.I*imA21)
 
- 
+
+
+
