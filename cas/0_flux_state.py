@@ -72,7 +72,7 @@ def minor_simp(a):
 j1 = w1
 j2 = w2
 
-A = dH0
+A = dH1
 
 
 A11 = minor_simp(j1.H.dot(A*j1))
