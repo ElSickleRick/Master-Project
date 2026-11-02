@@ -1058,22 +1058,24 @@ if __name__ == "__main__":
     projects = {
             # 'T=45_lin_minus_pi_half_1008_01' : "-pi/2, lin",
             # 'T=45_exp_minus_pi_half_1008_01' : "-pi/2, exp",
-            # 'T=45_exp_pi_half_0508_01' : "pi/2, exp",
+            'T=45_exp_pi_half_0508_01' : "pi/2, exp",
             # 'T=45_lin_pi_half_0508_01' : "pi/2, lin",
             # 'T=47_exp_pi_half_1108_01'  : "T=47",
             # 'T=45_exp_up_1308_01' : "T=45, exp, up",
-            'T=65_exp_up_1308_01' : "T=65, exp, up",            
+            # 'T=65_exp_up_1308_01' : "T=65, exp, up",            
             # 'T=65_lin_up_1708_01' : "T=65, lin, up",
-            # 'T=45_exp_rot_pi_half_1708_01' : "T=45 exp, rot, pi/2" 
-            # 'T=65_exp_rot_up_1708_01' : "T=65 exp, rot, up" # bad convergence!!
+            # 'T=45_exp_rot_pi_half_1708_01' : "T=45 exp, rot, pi/2", 
+            # 'T=65_exp_rot_up_1708_01' : "T=65 exp, rot, up", # bad convergence!!
+            # 'T=65_exp_rot_up_1808_01' : "T=65 exp, rot, up",
+
             }
-    mode = 'pi/2' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2, '-pi/2' shows derivation from -pi/2
+    mode = 'flux' # (for real_space) options: 'flux' shows total flux, 'pi/2' shows deviations from pi/2, '-pi/2' shows derivation from -pi/2
     
     # DOS()
     # LDOS()
     # real_space(mode)
-    # localization_real_space()
+    localization_real_space()
     # J_t()
-    local_chemical_potential()
+    # local_chemical_potential()
 
 
