@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 
-grid_size_x = 250
-grid_size_y = 250
-k_min_x = -np.pi
-k_max_x = np.pi
-k_min_y = -np.pi
-k_max_y = np.pi
+grid_size_x = 80
+grid_size_y = 80
+k_min_x = -3*np.pi/5
+k_max_x = 3*np.pi/5
+k_min_y = -3*np.pi/5 
+k_max_y = 3*np.pi/5
 
 kx_arr = np.linspace(k_min_x, k_max_x, grid_size_x)
 ky_arr = np.linspace(k_min_y, k_max_y, grid_size_y)
@@ -64,41 +64,87 @@ for i in range(0 , grid_size_y):
 
 fig = plt.figure()
 
-"""
+def wireframe():
 
-ax = fig.add_subplot(111, projection='3d')
+    fig.tight_layout()
+    ax = fig.add_subplot(111, projection='3d')
 
-colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple']
+    colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple']
 
-for i in [3,4]:
-    ax.plot_wireframe(KX, KY, bands[i], color = colors[i])
+    for i in [0,1,2,3,4,5]:
+        ax.plot_wireframe(KX, KY, bands[i], color = colors[i])
 
-"""
+    
+    # ax.set_xticks([-np.pi/2, np.pi/2])
+    # ax.set_xticklabels([r"$-\frac{\pi}{2}$", r"$\frac{\pi}{2}$"])
+    # ax.xaxis.set_tick_params(pad = 0)
+    # ax.set_yticks([-np.pi/2, np.pi/2])
+    # ax.set_yticklabels([r"$-\frac{\pi}{2}$", r"$\frac{\pi}{2}$"])
+    # ax.yaxis.set_tick_params(pad = 0)
+    
 
-ax = fig.add_subplot(111)
-c = ax.pcolormesh(KX, KY, bands[3])
-fig.colorbar(c, ax=ax)
+    ax.set_xticks([])
+    ax.set_yticks([])
 
-ax.plot([np.pi/2, np.pi/2, -np.pi/2, -np.pi/2, np.pi/2], [-np.pi/(2*np.sqrt(3)), np.pi/(2*np.sqrt(3)), np.pi/(2*np.sqrt(3)), -np.pi/(2*np.sqrt(3)), -np.pi/(2*np.sqrt(3))], c = "black", lw = 3)
+    ax.view_init(elev = 10, azim = 65, vertical_axis = 'z')
 
-# to band below:
-ax.scatter(np.pi/4, np.pi/(4*np.sqrt(3)), s = 50 , marker = "x" , c = "black")
-ax.scatter(-np.pi/4, -np.pi/(4*np.sqrt(3)), s = 50 , marker = "x" , c = "black")
-ax.text(np.pi/4 + 0.15, np.pi/(4*np.sqrt(3)) + 0.05, r"$F$", fontsize = "x-large")
-ax.text(-np.pi/4 + 0.15, -np.pi/(4*np.sqrt(3)) + 0.05, r"$F^{\prime}$", fontsize = "x-large")
+    ax.set_xlabel(f"$p_x$", size = "x-large")
+    ax.set_ylabel(f"$p_y$", size = "x-large")
+    ax.zaxis.set_rotate_label(False)
+    ax.set_zlabel("E", rotation = "horizontal" ,  size = "x-large")
 
-# to band above: 
-ax.plot(np.pi/12, -np.pi/(4*np.sqrt(3)), fillstyle = "none", marker = "o", c = "black")
-ax.plot(-np.pi/12, np.pi/(4*np.sqrt(3)), fillstyle = "none", marker = "o", c = "black")
-ax.text(np.pi/12 + 0.15, -np.pi/(4*np.sqrt(3)) + 0.05 , r"C", fontsize = "x-large")
-ax.text(-np.pi/12 + 0.15, np.pi/(4*np.sqrt(3)) + 0.05 , r"$C^{\prime}$", fontsize = "x-large")
+    
+    plt.show()
+    fig.savefig("/home/erick/Documents/Uni/Master-Project/wiki/WARB_presentation/pictures/bands_kagome.png", bbox_inches="tight", pad_inches=0.02, dpi=1200)
 
-ax.plot(5*np.pi/12, -np.pi/(4*np.sqrt(3)), fillstyle = "none", marker = "o", c = "black")
-ax.plot(-5*np.pi/12, np.pi/(4*np.sqrt(3)), fillstyle = "none", marker = "o", c = "black")
-ax.text(5*np.pi/12 - 0.325, -np.pi/(4*np.sqrt(3)) + 0.05, r"E", fontsize = "x-large")
-ax.text(-5*np.pi/12 + 0.15, np.pi/(4*np.sqrt(3)) + 0.05, r"$E^{\prime}$", fontsize = "x-large")
 
-# ax.grid()
+
+def dispersion():
+
+    ax = fig.add_subplot(111)
+    c = ax.pcolormesh(KX, KY, bands[3])
+    colorbar = fig.colorbar(c, ax=ax)
+
+    levels = np.linspace(-1, 1, 11)
+    contours = plt.contour(KX, KY, bands[3], levels = levels, colors = "black", linestyle = "solid", linewidth = 0.5)
+
+    ax.plot([np.pi/2, np.pi/2, -np.pi/2, -np.pi/2, np.pi/2], [-np.pi/(2*np.sqrt(3)), np.pi/(2*np.sqrt(3)), np.pi/(2*np.sqrt(3)),    -np.pi/(2*np.sqrt(3)), -np.pi/(2*np.sqrt(3))], c = "black", ls= '--', lw = 2)
+
+    # to band below:
+    # ax.text(np.pi/4, np.pi/(4*np.sqrt(3)), r"$\vec{A}$", ha = "center", va = "center")
+    # ax.text(-np.pi/4, -np.pi/(4*np.sqrt(3)), r"$-\vec{A}$", ha = "center", va = "center")
+    # ax.scatter(np.pi/4, np.pi/(4*np.sqrt(3)), s = 50 , marker = "x" , c = "black")
+    # ax.scatter(-np.pi/4, -np.pi/(4*np.sqrt(3)), s = 50 , marker = "x" , c = "black")
+    # ax.text(np.pi/4 + 0.15, np.pi/(4*np.sqrt(3)) + 0.05, r"$F$", fontsize = "x-large")
+    # ax.text(-np.pi/4 + 0.15, -np.pi/(4*np.sqrt(3)) + 0.05, r"$F^{\prime}$", fontsize = "x-large")
+    
+    fontsize = "small"
+
+    # to band above: 
+    ax.text(np.pi/12, -np.pi/(4*np.sqrt(3)), r"$\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
+    ax.text(-np.pi/12, np.pi/(4*np.sqrt(3)), r"$-\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
+    # ax.text(np.pi/12 + 0.15, -np.pi/(4*np.sqrt(3)) + 0.05 , r"C", fontsize = "x-large")
+    # ax.text(-np.pi/12 + 0.15, np.pi/(4*np.sqrt(3)) + 0.05 , r"$C^{\prime}$", fontsize = "x-large")
+    
+
+    ax.text(5*np.pi/12, -np.pi/(4*np.sqrt(3)), r"$-\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
+    ax.text(-5*np.pi/12, np.pi/(4*np.sqrt(3)), r"$\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
+    # ax.text(5*np.pi/12 - 0.325, -np.pi/(4*np.sqrt(3)) + 0.05, r"E", fontsize = "x-large")
+    # ax.text(-5*np.pi/12 + 0.15, np.pi/(4*np.sqrt(3)) + 0.05, r"$E^{\prime}$", fontsize = "x-large")
+
+    # ax.tick_params( axis = 'both', which = 'both', bottom = False, left = False, labelbottom = False, labelleft = False)
+
+    ax.set_xticks([-np.pi/2, 0, np.pi/2])
+    ax.set_xticklabels([r"$-\frac{\pi}{2}$", "0", r"$\frac{\pi}{2}$"], fontsize = "x-large")
+    ax.set_yticks([-np.pi/2, 0, np.pi/2])
+    ax.set_yticklabels([r"$-\frac{\pi}{2}$", "0", r"$\frac{\pi}{2}$"], fontsize = "x-large")
+    ax.set_xlabel(f"$p_x$", fontsize = "x-large")
+    ax.set_ylabel(f"$p_y$", fontsize = "x-large")
+
+    colorbar.set_label("E", rotation = 0, labelpad = 10, size = "x-large")
+    plt.show()
+
+    fig.savefig("/home/erick/Documents/Uni/Master-Project/wiki/WARB_presentation/pictures/dispersion_kagome.png", bbox_inches="tight", pad_inches=0.02, dpi=300)    # ax.grid()
 
 
 # 4th band:
@@ -129,4 +175,4 @@ ax.text(-5*np.pi/12 + 0.15, np.pi/(4*np.sqrt(3)) + 0.05, r"$E^{\prime}$", fontsi
 # print(np.array([KX[ind], 4*np.sqrt(3)*KY[ind]/np.pi]))
 # print(np.array([KX[ind], KY[ind]]))
 
-plt.show()
+dispersion()
