@@ -113,22 +113,27 @@ def dispersion():
     # to band below:
     # ax.text(np.pi/4, np.pi/(4*np.sqrt(3)), r"$\vec{A}$", ha = "center", va = "center")
     # ax.text(-np.pi/4, -np.pi/(4*np.sqrt(3)), r"$-\vec{A}$", ha = "center", va = "center")
-    # ax.scatter(np.pi/4, np.pi/(4*np.sqrt(3)), s = 50 , marker = "x" , c = "black")
-    # ax.scatter(-np.pi/4, -np.pi/(4*np.sqrt(3)), s = 50 , marker = "x" , c = "black")
+    ax.scatter(np.pi/4, np.pi/(4*np.sqrt(3)), s = 50 , marker = "x" , c = "black")
+    ax.scatter(-np.pi/4, -np.pi/(4*np.sqrt(3)), s = 50 , marker = "x" , c = "black")
     # ax.text(np.pi/4 + 0.15, np.pi/(4*np.sqrt(3)) + 0.05, r"$F$", fontsize = "x-large")
     # ax.text(-np.pi/4 + 0.15, -np.pi/(4*np.sqrt(3)) + 0.05, r"$F^{\prime}$", fontsize = "x-large")
     
     fontsize = "small"
 
     # to band above: 
-    ax.text(np.pi/12, -np.pi/(4*np.sqrt(3)), r"$\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
-    ax.text(-np.pi/12, np.pi/(4*np.sqrt(3)), r"$-\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
+    # ax.text(np.pi/12, -np.pi/(4*np.sqrt(3)), r"$\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
+    # ax.text(-np.pi/12, np.pi/(4*np.sqrt(3)), r"$-\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
     # ax.text(np.pi/12 + 0.15, -np.pi/(4*np.sqrt(3)) + 0.05 , r"C", fontsize = "x-large")
     # ax.text(-np.pi/12 + 0.15, np.pi/(4*np.sqrt(3)) + 0.05 , r"$C^{\prime}$", fontsize = "x-large")
-    
 
-    ax.text(5*np.pi/12, -np.pi/(4*np.sqrt(3)), r"$-\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
-    ax.text(-5*np.pi/12, np.pi/(4*np.sqrt(3)), r"$\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
+    
+    ax.scatter(np.pi/12, -np.pi/(4*np.sqrt(3)), marker = "o", facecolor = "none",  edgecolor = "black", linewidths = 2)
+    ax.scatter(-np.pi/12, np.pi/(4*np.sqrt(3)), marker = "o",  facecolor = "none",  edgecolor = "black", linewidths = 2)   
+    ax.scatter(5*np.pi/12, -np.pi/(4*np.sqrt(3)), marker = "o", facecolor = "none",  edgecolor = "black", linewidths = 2)
+    ax.scatter(-5*np.pi/12, np.pi/(4*np.sqrt(3)), marker = "o", facecolor = "none",  edgecolor = "black", linewidths = 2) 
+
+    # ax.text(5*np.pi/12, -np.pi/(4*np.sqrt(3)), r"$-\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
+    # ax.text(-5*np.pi/12, np.pi/(4*np.sqrt(3)), r"$\vec{\text{A}}$", ha = "center", va = "center", fontsize = fontsize)
     # ax.text(5*np.pi/12 - 0.325, -np.pi/(4*np.sqrt(3)) + 0.05, r"E", fontsize = "x-large")
     # ax.text(-5*np.pi/12 + 0.15, np.pi/(4*np.sqrt(3)) + 0.05, r"$E^{\prime}$", fontsize = "x-large")
 
@@ -144,7 +149,7 @@ def dispersion():
     colorbar.set_label("E", rotation = 0, labelpad = 10, size = "x-large")
     plt.show()
 
-    fig.savefig("/home/erick/Documents/Uni/Master-Project/wiki/WARB_presentation/pictures/dispersion_kagome.png", bbox_inches="tight", pad_inches=0.02, dpi=300)    # ax.grid()
+    fig.savefig("/home/erick/Documents/Uni/Master-Project/wiki/WARB_presentation/pictures/dispersion_kagome_without_vector_potential.png", bbox_inches="tight", pad_inches=0.02, dpi=300)    # ax.grid()
 
 
 # 4th band:
